@@ -351,58 +351,90 @@ function parseCandidatos(texto) {
 // ── MULTI-SELECT DROPDOWNS ──────────────────────────────────────
 function buildFilterDropdowns() {
   const bar = document.getElementById("filter-bar");
-  // Eliminar dropdowns anteriores (dejar solo el label y el botón reset)
   bar.querySelectorAll(".ms-wrap").forEach(el => el.remove());
+  // Eliminar dropdowns flotantes previos del body
+  document.querySelectorAll(".ms-dropdown-portal").forEach(el => el.remove());
   const resetBtn = bar.querySelector(".btn-reset");
 
   FILTER_DEFS.forEach(def => {
     let options;
     if (def.fixed) {
-      options = def.fixed;
+      options = def.fixed.map(v => ({value:v, label:v}));
     } else if (def.statusMap) {
       options = Object.entries(STATUS).map(([v,cfg]) => ({value:v, label:cfg.label}));
     } else {
-      options = [...new Set(DATA.map(d=>d[def.field]).filter(Boolean))].sort()
-                .map(v => ({value:v, label:v}));
+      options = [...new Set(DATA.map(d=>d[def.field]).filter(Boolean))].sort().map(v=>({value:v,label:v}));
     }
 
+    // Botón en la barra
     const wrap = document.createElement("div");
     wrap.className = "ms-wrap";
     wrap.id = "wrap-" + def.id;
-    wrap.innerHTML = buildDropdownHTML(def, options);
+    wrap.innerHTML = `
+      <div class="ms-btn" title="${def.label}">
+        <span class="ms-label">${def.label}</span>
+        <span class="ms-val">Todos</span>
+        <span class="ms-badge" style="display:none">0</span>
+        <span class="ms-arrow">▼</span>
+      </div>`;
     bar.insertBefore(wrap, resetBtn);
 
-    // Eventos
-    const btn = wrap.querySelector(".ms-btn");
-    const dd  = wrap.querySelector(".ms-dropdown");
-    const search = wrap.querySelector(".ms-search");
+    // Dropdown portal — hijo directo del body para evitar clipping
+    const showSearch = options.length > 6;
+    const portal = document.createElement("div");
+    portal.className = "ms-dropdown-portal";
+    portal.id = "portal-" + def.id;
+    portal.style.cssText = "position:fixed;z-index:9999;display:none;min-width:200px;background:#0d2540;border:1px solid rgba(255,255,255,0.2);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,0.7);overflow:hidden;";
+    portal.innerHTML = `
+      ${showSearch ? `<input class="ms-search" placeholder="Buscar…" type="text" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;">` : ""}
+      <div class="ms-options" style="max-height:220px;overflow-y:auto;">
+        ${options.map(o=>`
+          <div class="ms-option" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;transition:background .12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background=''">
+            <input type="checkbox" id="${def.id}-${o.value.replace(/[^a-z0-9]/gi,'_')}" value="${o.value}" style="accent-color:var(--accent);width:13px;height:13px;cursor:pointer;">
+            <label for="${def.id}-${o.value.replace(/[^a-z0-9]/gi,'_')}" style="cursor:pointer;flex:1;color:var(--text);">${o.label}</label>
+          </div>`).join("")}
+      </div>
+      <div style="display:flex;gap:6px;padding:8px 10px;border-top:1px solid rgba(255,255,255,0.07);">
+        <button class="ms-sel-all" style="flex:1;font-family:var(--font);font-size:11px;font-weight:600;padding:5px 8px;border-radius:6px;cursor:pointer;border:none;background:rgba(0,198,167,0.15);color:var(--accent);">Seleccionar todo</button>
+        <button class="ms-clr-all" style="flex:1;font-family:var(--font);font-size:11px;font-weight:600;padding:5px 8px;border-radius:6px;cursor:pointer;border:none;background:rgba(255,255,255,0.06);color:var(--muted);">Limpiar</button>
+      </div>`;
+    document.body.appendChild(portal);
 
+    const btn = wrap.querySelector(".ms-btn");
+
+    // Abrir/cerrar
     btn.addEventListener("click", e => {
       e.stopPropagation();
-      const isOpen = dd.classList.contains("open");
+      const isOpen = portal.style.display === "block";
       closeAllDropdowns();
       if (!isOpen) {
         const rect = btn.getBoundingClientRect();
-        dd.style.top  = (rect.bottom + 4) + "px";
-        dd.style.left = rect.left + "px";
-        dd.style.minWidth = Math.max(rect.width, 200) + "px";
-        dd.classList.add("open");
+        portal.style.display = "block";
+        portal.style.left = rect.left + "px";
+        portal.style.top  = (rect.bottom + 6) + "px";
+        portal.style.minWidth = Math.max(rect.width, 200) + "px";
         btn.classList.add("open");
-        if(search) search.focus();
+        const s = portal.querySelector(".ms-search");
+        if (s) { s.value = ""; s.focus(); portal.querySelectorAll(".ms-option").forEach(o=>o.style.display=""); }
       }
     });
 
-    if (search) {
-      search.addEventListener("input", () => {
-        const q = search.value.toLowerCase();
-        wrap.querySelectorAll(".ms-option").forEach(opt => {
+    // Búsqueda
+    const searchEl = portal.querySelector(".ms-search");
+    if (searchEl) {
+      searchEl.addEventListener("click", e => e.stopPropagation());
+      searchEl.addEventListener("input", () => {
+        const q = searchEl.value.toLowerCase();
+        portal.querySelectorAll(".ms-option").forEach(opt => {
           opt.style.display = opt.querySelector("label").textContent.toLowerCase().includes(q) ? "" : "none";
         });
       });
     }
 
-    wrap.querySelectorAll(".ms-option input").forEach(cb => {
-      cb.addEventListener("change", () => {
+    // Checkboxes
+    portal.querySelectorAll(".ms-option input").forEach(cb => {
+      cb.addEventListener("change", e => {
+        e.stopPropagation();
         if (cb.checked) filterState[def.id].add(cb.value);
         else filterState[def.id].delete(cb.value);
         updateDropdownBtn(def);
@@ -410,41 +442,21 @@ function buildFilterDropdowns() {
       });
     });
 
-    wrap.querySelector(".ms-sel-all").addEventListener("click", () => {
-      wrap.querySelectorAll(".ms-option input").forEach(cb => { cb.checked=true; filterState[def.id].add(cb.value); });
+    portal.querySelector(".ms-sel-all").addEventListener("click", e => {
+      e.stopPropagation();
+      portal.querySelectorAll(".ms-option input").forEach(cb => { cb.checked=true; filterState[def.id].add(cb.value); });
       updateDropdownBtn(def); refresh();
     });
-    wrap.querySelector(".ms-clr-all").addEventListener("click", () => {
-      wrap.querySelectorAll(".ms-option input").forEach(cb => { cb.checked=false; });
+    portal.querySelector(".ms-clr-all").addEventListener("click", e => {
+      e.stopPropagation();
+      portal.querySelectorAll(".ms-option input").forEach(cb => cb.checked=false);
       filterState[def.id].clear();
       updateDropdownBtn(def); refresh();
     });
   });
 }
 
-function buildDropdownHTML(def, options) {
-  const optsHTML = options.map(o => {
-    const val = typeof o === "string" ? o : o.value;
-    const lbl = typeof o === "string" ? o : o.label;
-    return `<div class="ms-option"><input type="checkbox" id="${def.id}-${val.replace(/\s/g,'_')}" value="${val}"><label for="${def.id}-${val.replace(/\s/g,'_')}">${lbl}</label></div>`;
-  }).join("");
-  const showSearch = options.length > 6;
-  return `
-    <div class="ms-btn" title="${def.label}">
-      <span class="ms-label">${def.label}</span>
-      <span class="ms-val">Todos</span>
-      <span class="ms-badge" style="display:none">0</span>
-      <span class="ms-arrow">▼</span>
-    </div>
-    <div class="ms-dropdown">
-      ${showSearch ? `<input class="ms-search" placeholder="Buscar…" type="text">` : ""}
-      <div class="ms-options">${optsHTML}</div>
-      <div class="ms-footer">
-        <button class="ms-sel-all">Seleccionar todo</button>
-        <button class="ms-clr-all">Limpiar</button>
-      </div>
-    </div>`;
-}
+function buildDropdownHTML() {} // vacío, ya no se usa
 
 function updateDropdownBtn(def) {
   const wrap = document.getElementById("wrap-" + def.id);
@@ -452,23 +464,20 @@ function updateDropdownBtn(def) {
   const sel = filterState[def.id];
   const btn  = wrap.querySelector(".ms-btn");
   const valEl = btn.querySelector(".ms-val");
-  const badge = btn.querySelector(".ms-badge");
+  const badgeEl = btn.querySelector(".ms-badge");
   if (sel.size === 0) {
     valEl.textContent = "Todos";
-    badge.style.display = "none";
+    badgeEl.style.display = "none";
   } else {
-    const labels = [...sel].map(v => {
-      if (def.statusMap) return STATUS[v]?.label || v;
-      return v;
-    });
+    const labels = [...sel].map(v => def.statusMap ? (STATUS[v]?.label || v) : v);
     valEl.textContent = labels.length === 1 ? labels[0] : `${labels.length} selec.`;
-    badge.textContent = sel.size;
-    badge.style.display = "";
+    badgeEl.textContent = sel.size;
+    badgeEl.style.display = "";
   }
 }
 
 function closeAllDropdowns() {
-  document.querySelectorAll(".ms-dropdown.open").forEach(d => d.classList.remove("open"));
+  document.querySelectorAll(".ms-dropdown-portal").forEach(d => d.style.display = "none");
   document.querySelectorAll(".ms-btn.open").forEach(b => b.classList.remove("open"));
 }
 document.addEventListener("click", closeAllDropdowns);
@@ -496,8 +505,11 @@ function renderChips() {
       chip.innerHTML = `<span>${def.label}: <b>${label}</b></span><span class="chip-x" title="Quitar">×</span>`;
       chip.querySelector(".chip-x").addEventListener("click", () => {
         filterState[def.id].delete(val);
-        const cb = document.querySelector(`#wrap-${def.id} input[value="${val}"]`);
-        if (cb) cb.checked = false;
+        const portal = document.getElementById("portal-" + def.id);
+        if (portal) {
+          const cb = portal.querySelector(`input[value="${val}"]`);
+          if (cb) cb.checked = false;
+        }
         updateDropdownBtn(def);
         refresh();
       });
@@ -627,7 +639,8 @@ function sortBy(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=
 function resetFilters(){
   FILTER_DEFS.forEach(def=>{
     filterState[def.id].clear();
-    document.querySelectorAll(`#wrap-${def.id} input[type=checkbox]`).forEach(cb=>cb.checked=false);
+    const portal = document.getElementById("portal-" + def.id);
+    if (portal) portal.querySelectorAll("input[type=checkbox]").forEach(cb=>cb.checked=false);
     updateDropdownBtn(def);
   });
   refresh();
