@@ -70,8 +70,6 @@
         tbody td{padding:12px 14px;vertical-align:middle}
         .td-req{font-family:var(--mono);font-size:11px;color:var(--muted)}
         .td-cargo{font-weight:600;color:var(--text);max-width:200px}
-        .td-vp{font-size:11px;color:rgba(232,240,250,0.7);max-width:160px}
-        .td-dir{font-size:11px;color:rgba(232,240,250,0.6);max-width:140px}
         .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.04em;white-space:nowrap}
         .badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
         .b-entrevista{background:rgba(255,179,71,0.15);color:#ffcc7a;border:1px solid rgba(255,179,71,0.25)}.b-entrevista .badge-dot{background:#ffb347}
@@ -85,6 +83,19 @@
         .has-candidates{color:var(--accent);font-size:11px;font-family:var(--mono)}
         .no-candidates{color:var(--muted);font-size:11px;font-family:var(--mono)}
         .empty-state{text-align:center;padding:48px 20px;color:var(--muted);font-size:13px}
+
+        /* LOADING */
+        .loading-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
+        .loading-overlay.hidden{opacity:0;pointer-events:none}
+        .spinner{width:40px;height:40px;border:3px solid rgba(0,198,167,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+        .loading-text{font-size:13px;color:var(--muted)}
+        .error-banner{background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);border-radius:var(--radius);padding:14px 20px;color:#ff9f9f;font-size:13px;margin-bottom:20px;display:none;align-items:center;gap:10px}
+        .error-banner.show{display:flex}
+        .btn-retry{font-family:var(--font);font-size:12px;font-weight:600;color:var(--danger);background:transparent;border:1px solid var(--danger);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;margin-left:auto;white-space:nowrap}
+        .btn-retry:hover{background:rgba(255,107,107,0.1)}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* DRAWER */
         .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px)}
         .drawer-overlay.open{opacity:1;pointer-events:all}
         .drawer{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:96vw;background:#0e2847;border-left:1px solid rgba(255,255,255,0.1);z-index:101;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
@@ -105,8 +116,10 @@
         .candidate-note{font-size:12px;color:rgba(232,240,250,0.55);margin-top:6px;font-style:italic;line-height:1.4}
         .no-cand-msg{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
         .drawer-meta{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07)}
-        .meta-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px}
-        .meta-row .meta-key{color:var(--muted)}.meta-row .meta-val{color:var(--text);font-weight:500;text-align:right;max-width:230px}
+        .meta-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;font-size:12px}
+        .meta-row .meta-key{color:var(--muted);white-space:nowrap;margin-right:12px}
+        .meta-row .meta-val{color:var(--text);font-weight:500;text-align:right;max-width:230px}
+
         @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.charts-row{grid-template-columns:1fr}}
         @media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}}
         ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}
@@ -120,6 +133,13 @@
     </style>
 </head>
 <body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Cargando vacantes desde Google Sheets…</div>
+</div>
+
 <div class="page">
     <header>
         <div class="logo-area">
@@ -127,8 +147,14 @@
             <h1>Adquisición de <span>Talento</span></h1>
             <p>Dashboard de vacantes activas</p>
         </div>
-        <div class="date-badge">Mayo 2026</div>
+        <div class="date-badge" id="date-badge">Cargando…</div>
     </header>
+
+    <!-- ERROR BANNER -->
+    <div class="error-banner" id="error-banner">
+        <span>⚠️ No se pudo conectar con Google Sheets. Mostrando últimos datos cargados.</span>
+        <button class="btn-retry" onclick="loadData()">↺ Reintentar</button>
+    </div>
 
     <div class="kpi-grid">
         <div class="kpi-card c-total"><div class="kpi-label">Total activas</div><div class="kpi-val" id="k-total">—</div><div class="kpi-sub">vacantes en proceso</div></div>
@@ -208,126 +234,313 @@
 </div>
 
 <script>
-const DATA = [
-  {req:"RQ-143",prio:"MEDIA",fecha:"21/02/2026",responsable:"CLAUDIA VELOZO",vp:"ADMINISTRACION Y FINANZAS",dir:"CONTABILIDAD",loc:"CARACAS",contacto:"Karla Barraza",estatus:"EN PROCESO ENTREVISTA",tipo:"Egreso",cargo:"ANALISTA DE CONTABILIDAD",nivel:"ANALISTA",contrato:"INDETERMINADO",candidatos:[{nombre:"Karelys Ortega",statusLabel:"En entrevista",fecha:"",nota:""},{nombre:"José Antonio Traboulsi",statusLabel:"En entrevista",fecha:"",nota:""}],comentario:"Vacante generada por TO | Correo 21/02"},
-  {req:"RQ-155",prio:"ALTA",fecha:"31/03/2026",responsable:"CLAUDIA VELOZO",vp:"ADMINISTRACION Y FINANZAS",dir:"IMPUESTOS",loc:"CARACAS",contacto:"Mary Salazar",estatus:"EN PROCESO ENTREVISTA",tipo:"Confidencial",cargo:"ANALISTA DE IMPUESTOS",nivel:"ANALISTA",contrato:"INDETERMINADO",candidatos:[{nombre:"Guillermo Pinzon",statusLabel:"En entrevista",fecha:"",nota:"Seguimos en la búsqueda aun cuando la vacante no está disponible en el área"}],comentario:"Vacante generada por FG por movimiento confidencial"},
-  {req:"RQ-162",prio:"ALTA",fecha:"25/05/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"ADMINISTRACION Y FINANZAS",dir:"COMPRAS BIENES Y SERVICIOS",loc:"CARACAS",contacto:"Genesis Avendaño",estatus:"VACANTE",tipo:"Movimiento",cargo:"COORDINADOR DE COMPRAS BIENES Y SERVICIOS",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[{nombre:"JULEASNNY ÁLVAREZ",statusLabel:"En proceso de Pruebas",fecha:"",nota:""}],comentario:"Vacante generada por TO | 25/05/2026 | Movimiento de Ana Figueira"},
-  {req:"RQ-159",prio:"ALTA",fecha:"08/05/2026",responsable:"DANIELA PLATA",vp:"AUDITORIA",dir:"AUDITORIA",loc:"BARQUISIMETO",contacto:"Yolimar Gois / Jose Valera",estatus:"VACANTE",tipo:"Egreso",cargo:"AUDITOR INTERNO",nivel:"ANALISTA",contrato:"INDETERMINADO",candidatos:[],comentario:"Revisar con Dani"},
-  {req:"RQ-152",prio:"ALTA",fecha:"14/03/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"COMERCIAL",dir:"MERCADEO",loc:"CARACAS",contacto:"Oscar Tafur",estatus:"EN PROCESO ENTREVISTA",tipo:"Egreso",cargo:"ANALISTA DE DISEÑO GRÁFICO",nivel:"ANALISTA",contrato:"INDETERMINADO",candidatos:[{nombre:"Milagros Serrano",statusLabel:"En proceso de Pruebas",fecha:"",nota:""},{nombre:"Ana Patricia Añez",statusLabel:"En proceso de Pruebas",fecha:"",nota:""}],comentario:"Correo generado por FB el 14/03/2026"},
-  {req:"RQ-141",prio:"ALTA",fecha:"10/02/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"COMERCIAL",dir:"NEGOCIOS MEDICINAS",loc:"CARACAS",contacto:"Andres Rodriguez | Luis G Hernández",estatus:"EN PROCESO ENTREVISTA",tipo:"Egreso",cargo:"ESPECIALISTA COMERCIAL",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[{nombre:"Mariana Bravo",statusLabel:"En proceso",fecha:"",nota:"Por espera de Andres Rodriguez y Luis Guillermo"}],comentario:"Vacante generada el 09/02 por FG"},
-  {req:"RQ-151",prio:"MEDIA",fecha:"10/03/2026",responsable:"SOLANGE ECHEVERRIA",vp:"COMERCIAL",dir:"MARCA PROPIA",loc:"CARACAS",contacto:"Stephanie Barraud",estatus:"VACANTE",tipo:"Posicion adicional",cargo:"COMPRADOR",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[],comentario:"Correo generado por TO el 10/03/2026"},
-  {req:"RQ-146",prio:"MEDIA",fecha:"20/02/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"PROTECCIÓN INTEGRAL",dir:"PROTECCIÓN INTEGRAL",loc:"CARACAS",contacto:"Roger Rangel",estatus:"EN PROCESO ENTREVISTA",tipo:"Movimiento",cargo:"CONDUCTOR EJECUTIVO",nivel:"ANALISTA",contrato:"INDETERMINADO",candidatos:[{nombre:"Luis Llovera",statusLabel:"En entrevista con Abraham Alarcon",fecha:"Lunes 25/05 3:00pm",nota:""}],comentario:"Vacante generada por TO | Correo 20/02/2026"},
-  {req:"RQ-145",prio:"MEDIA",fecha:"19/02/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"PROTECCIÓN INTEGRAL",dir:"PROTECCIÓN INTEGRAL",loc:"CARACAS",contacto:"Abraham Alarcon",estatus:"EN PROCESO ENTREVISTA",tipo:"Movimiento",cargo:"COORDINADOR DE PROTECCIÓN INTEGRAL",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[{nombre:"Jesus Aguilar",statusLabel:"En entrevista",fecha:"Miércoles 27/05",nota:""},{nombre:"Indira Alvarez",statusLabel:"En entrevista",fecha:"Miércoles 27/05",nota:""},{nombre:"Richard Mayora",statusLabel:"En entrevista",fecha:"Miércoles 27/05",nota:""}],comentario:"Vacante generada por TO | Correo 19/02/2026"},
-  {req:"RQ-059",prio:"MEDIA",fecha:"26/07/2024",responsable:"MARIA ALEJANDRA HERRERA",vp:"RECURSOS HUMANOS",dir:"RRHH OPERACIONES",loc:"MARACAIBO",contacto:"Richard Angulo",estatus:"VACANTE",tipo:"Confidencial",cargo:"COORDINADOR DE RRHH OPERACIONES",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[],comentario:"En proceso de Contacto Kevin Vilchez | Maria A Tirado"},
-  {req:"RQ-068",prio:"ALTA",fecha:"26/07/2024",responsable:"MARIA ALEJANDRA HERRERA",vp:"RECURSOS HUMANOS",dir:"RRHH OPERACIONES",loc:"MERIDA",contacto:"Richard Angulo",estatus:"EN PROCESO ENTREVISTA",tipo:"Confidencial",cargo:"COORDINADOR DE RRHH OPERACIONES",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[{nombre:"Maria Patro",statusLabel:"En proceso de entrevista con RA",fecha:"",nota:""}],comentario:"Validado con Myrel Jasper movimiento interno o búsqueda en estados cercanos"},
-  {req:"RQ-150",prio:"ALTA",fecha:"20/01/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"RECURSOS HUMANOS",dir:"RRHH OPERACIONES",loc:"MARACAY",contacto:"Myrel Jasper",estatus:"EN PROCESO ENTREVISTA",tipo:"Confidencial",cargo:"COORDINADOR DE RRHH OPERACIONES",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[{nombre:"Andreina Zuloaga",statusLabel:"En revisión de perfil",fecha:"",nota:""},{nombre:"Noricarla",statusLabel:"No calificó",fecha:"",nota:""}],comentario:"Correo generado por Myrel Jasper el 26/02 — cambio de localidad Caracas → Maracay"},
-  {req:"RQ-157",prio:"ALTA",fecha:"30/04/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"RECURSOS HUMANOS",dir:"RECURSOS HUMANOS",loc:"CARACAS",contacto:"Carlos Romero",estatus:"VACANTE",tipo:"Egreso",cargo:"SUPERVISOR DE SEGURIDAD HIGIENE Y AMBIENTE",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[],comentario:"Vacante generada por TO | 30/04/2026"},
-  {req:"RQ-158",prio:"ALTA",fecha:"30/04/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"RECURSOS HUMANOS",dir:"RECURSOS HUMANOS",loc:"CARACAS",contacto:"Myrel Jasper",estatus:"VACANTE",tipo:"Egreso",cargo:"COORDINADOR DE RRHH OPERACIONES",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[{nombre:"Angelica Santos",statusLabel:"En proceso de entrevista",fecha:"",nota:""},{nombre:"Deymar Castro",statusLabel:"En proceso de entrevista",fecha:"",nota:""}],comentario:"Vacante generada por TO | 29/04/2026"},
-  {req:"RQ-127",prio:"MEDIA",fecha:"03/03/2026",responsable:"DANIELA PLATA",vp:"TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",dir:"NUEVOS NEGOCIOS | TRANSFORMACIÓN DIGITAL",loc:"CARACAS",contacto:"Carlos Kubler | Jhon Puentes",estatus:"EN PROCESO ENTREVISTA",tipo:"Posicion adicional",cargo:"DESARROLLADOR BACKEND SEMI SENIOR",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[{nombre:"Abril Samara Sar Artiles",statusLabel:"En espera de respuesta de Jhon Puentes",fecha:"",nota:""}],comentario:"Vacante modificada en cargo y nivel por correo de FG 03/03/26"},
-  {req:"RQ-148",prio:"MEDIA",fecha:"26/02/2026",responsable:"DANIELA PLATA",vp:"TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",dir:"CALIDAD Y PRUEBAS",loc:"CARACAS",contacto:"Jorge Bernal",estatus:"VACANTE",tipo:"Movimiento",cargo:"INGENIERO DE CALIDAD Y PRUEBAS",nivel:"ANALISTA",contrato:"INDETERMINADO",candidatos:[],comentario:"En búsqueda"},
-  {req:"RQ-154",prio:"MEDIA",fecha:"23/04/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",dir:"OPERACIONES TI",loc:"CARACAS",contacto:"Edward Castillo",estatus:"VACANTE",tipo:"Movimiento",cargo:"ANALISTA DE AUTOMATIZACIÓN E INTELIGENCIA OPERATIVA",nivel:"ANALISTA",contrato:"INDETERMINADO",candidatos:[{nombre:"Anderson Manosalvas",statusLabel:"En proceso de entrevista",fecha:"",nota:""},{nombre:"Nathaly Bakerian",statusLabel:"En proceso de entrevista",fecha:"",nota:""}],comentario:"Vacante generada por FG | Correo 23/04"},
-  {req:"RQ-155",prio:"MEDIA",fecha:"23/04/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",dir:"OPERACIONES TI",loc:"CARACAS",contacto:"Edward Castillo",estatus:"VACANTE",tipo:"Movimiento",cargo:"ESPECIALISTA DE AUTOMATIZACIÓN E INTELIGENCIA OPERATIVA",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[],comentario:"Por movimiento interno de Jonathan Blanco"},
-  {req:"RQ-161",prio:"MEDIA",fecha:"13/05/2026",responsable:"DANIELA PLATA",vp:"TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",dir:"TRANSFORMACIÓN DIGITAL",loc:"CARACAS",contacto:"Iliushka Pérez",estatus:"VACANTE",tipo:"Movimiento",cargo:"DESARROLLADOR BACKEND SENIOR",nivel:"ESPECIALISTA | COORDINADOR",contrato:"INDETERMINADO",candidatos:[],comentario:"Movimiento de Enmanuel Medina"},
-  {req:"RQ-163",prio:"ALTA",fecha:"21/05/2026",responsable:"MARIA ALEJANDRA HERRERA",vp:"TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",dir:"MARKETING DIGITAL",loc:"CARACAS",contacto:"Alexandra Orta",estatus:"VACANTE",tipo:"Movimiento",cargo:"GERENTE DE MARKETING DIGITAL",nivel:"GERENTE",contrato:"INDETERMINADO",candidatos:[{nombre:"Paola Duque",statusLabel:"En evaluación — Mercado Libre",fecha:"",nota:""}],comentario:"Movimiento de Ale Orta a CIMA"},
-];
+// ── CONFIGURACIÓN ──────────────────────────────────────────────
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJWulrR0cxHIz8X9LcHzYBa1kV3mc2eLoVTKXM0f4qqpqXDL_2_uNtS6aU-yTTfFgQrA/exec";
 
-const STATUS = {
-  "EN PROCESO ENTREVISTA":{label:"En entrevista",cls:"b-entrevista",color:"#FFB347"},
-  "EN PROCESO DE INGRESO":{label:"En ingreso",cls:"b-ingreso",color:"#00C6A7"},
-  "EN PROCESO DE OFERTA":{label:"En oferta",cls:"b-oferta",color:"#5EAAF7"},
-  "VACANTE":{label:"Vacante",cls:"b-vacante",color:"#9B7FEA"},
+// Índices de columnas en el Sheet (base 0)
+// #REQU=0, PRIORIDAD=1, FECHA=2, RESPONSABLE=3, UNIDAD=4,
+// VP=5, DIR=6, LOCALIDAD=7, CONTACTO=8, ESTATUS=9,
+// MOTIVO=10, CARGO=11, NIVEL=12, CONTRATO=13, CANDIDATOS=14, COMENTARIOS=21
+const COL = {
+  req:0, prio:1, fecha:2, responsable:3, vp:5,
+  dir:6, loc:7, contacto:8, estatus:9, tipo:10,
+  cargo:11, nivel:12, contrato:13, candidatos:14, comentario:21
 };
 
-let sortCol="vp",sortAsc=true,barChart=null,donutChart=null;
-const unique=(arr,k)=>[...new Set(arr.map(d=>d[k]).filter(Boolean))].sort();
-const group=(arr,k)=>arr.reduce((m,d)=>{(m[d[k]]=m[d[k]]||[]).push(d);return m},{});
+const STATUS = {
+  "EN PROCESO ENTREVISTA": {label:"En entrevista", cls:"b-entrevista", color:"#FFB347"},
+  "EN PROCESO DE INGRESO": {label:"En ingreso",    cls:"b-ingreso",    color:"#00C6A7"},
+  "EN PROCESO DE OFERTA":  {label:"En oferta",     cls:"b-oferta",     color:"#5EAAF7"},
+  "VACANTE":               {label:"Vacante",       cls:"b-vacante",    color:"#9B7FEA"},
+};
 
-function getFiltered(){
-  const fVP=document.getElementById("f-vp").value,fDept=document.getElementById("f-dept").value,
-        fEst=document.getElementById("f-estatus").value,fNiv=document.getElementById("f-nivel").value,
-        fTipo=document.getElementById("f-tipo").value,fPrio=document.getElementById("f-prio").value,
-        fLoc=document.getElementById("f-loc").value;
-  return DATA.filter(r=>(!fVP||r.vp===fVP)&&(!fDept||r.dir===fDept)&&(!fEst||r.estatus===fEst)&&(!fNiv||r.nivel===fNiv)&&(!fTipo||r.tipo===fTipo)&&(!fPrio||r.prio===fPrio)&&(!fLoc||r.loc===fLoc));
+let DATA = [];
+let sortCol = "vp", sortAsc = true, barChart = null, donutChart = null;
+
+// ── CARGA DE DATOS DESDE APPS SCRIPT ──────────────────────────
+async function loadData() {
+  document.getElementById("loading-overlay").classList.remove("hidden");
+  document.getElementById("error-banner").classList.remove("show");
+
+  try {
+    const res = await fetch(SCRIPT_URL);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const raw = await res.json();
+
+    // La primera fila son los headers, la saltamos
+    const rows = raw.slice(1).filter(r => r[COL.req] && String(r[COL.req]).startsWith("RQ") && r[COL.cargo]);
+
+    DATA = rows.map(r => ({
+      req:         String(r[COL.req]   || "").trim(),
+      prio:        String(r[COL.prio]  || "").trim().toUpperCase(),
+      fecha:       String(r[COL.fecha] || "").trim(),
+      responsable: String(r[COL.responsable] || "").trim(),
+      vp:          String(r[COL.vp]    || "").trim(),
+      dir:         String(r[COL.dir]   || "").trim(),
+      loc:         String(r[COL.loc]   || "").trim(),
+      contacto:    String(r[COL.contacto] || "").trim(),
+      estatus:     String(r[COL.estatus]  || "").trim().toUpperCase().replace(/\s+/g," "),
+      tipo:        String(r[COL.tipo]  || "").trim(),
+      cargo:       String(r[COL.cargo] || "").trim(),
+      nivel:       String(r[COL.nivel] || "").trim(),
+      contrato:    String(r[COL.contrato] || "").trim(),
+      comentario:  String(r[COL.comentario] || "").trim(),
+      // Candidatos: parseamos el texto libre de la columna 14
+      candidatos:  parseCandidatos(String(r[COL.candidatos] || "")),
+    }));
+
+    // Actualizar fecha en header
+    const now = new Date();
+    document.getElementById("date-badge").textContent =
+      now.toLocaleDateString("es-VE", {month:"long", year:"numeric"})
+         .replace(/^\w/, c => c.toUpperCase());
+
+    initFilters();
+    refresh();
+
+  } catch(e) {
+    console.error("Error cargando datos:", e);
+    document.getElementById("error-banner").classList.add("show");
+    if (DATA.length) refresh(); // Usar datos anteriores si los hay
+  } finally {
+    document.getElementById("loading-overlay").classList.add("hidden");
+  }
 }
 
-function populateFilters(){
-  const add=(id,vals)=>{const s=document.getElementById(id);vals.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;s.appendChild(o);});};
-  add("f-vp",unique(DATA,"vp"));add("f-dept",unique(DATA,"dir"));
-  const fEst=document.getElementById("f-estatus");
-  Object.entries(STATUS).forEach(([v,cfg])=>{const o=document.createElement("option");o.value=v;o.textContent=cfg.label;fEst.appendChild(o);});
-  add("f-nivel",unique(DATA,"nivel"));add("f-tipo",unique(DATA,"tipo"));
-  add("f-prio",["ALTA","MEDIA"]);add("f-loc",unique(DATA,"loc"));
+// Parsea el texto libre de candidatos en objetos estructurados
+function parseCandidatos(texto) {
+  if (!texto || texto.trim() === "") return [];
+  // Separa por | o por salto de línea
+  const partes = texto.split(/\||[\n\r]+/).map(s => s.trim()).filter(Boolean);
+  return partes.map(p => {
+    // Detectar fecha tipo "25 de Mayo", "10 de Junio", etc.
+    const fechaMatch = p.match(/\b\d{1,2}\s+de\s+\w+(?:\s*\([^)]*\))?/i);
+    const fecha = fechaMatch ? fechaMatch[0] : "";
+    // Detectar patrones de estatus al inicio
+    const statusPatterns = [
+      /^en proceso de ingreso[:\s]*/i, /^en proceso de oferta[:\s]*/i,
+      /^en proceso entrevista[:\s]*/i, /^en proceso de pruebas[:\s]*/i,
+      /^en proceso[:\s]*/i, /^en entrevista[:\s]*/i,
+      /^en busqueda[:\s]*/i, /^ingreso[:\s]*/i, /^pendiente[:\s]*/i,
+    ];
+    let statusLabel = "En proceso";
+    let nombre = p;
+    for (const pat of statusPatterns) {
+      if (pat.test(p)) { statusLabel = p.match(pat)[0].replace(/[:\s]*$/, ""); break; }
+    }
+    // El nombre suele ser la parte que no es el status ni la fecha
+    nombre = p.replace(/^(en proceso de ingreso|en proceso de oferta|en proceso entrevista|en proceso de pruebas|en proceso|en entrevista|ingreso|pendiente)[:\s]*/i, "").trim();
+    if (fecha) nombre = nombre.replace(fechaMatch[0], "").replace(/[·\-–|]/g, "").trim();
+    // Si después de limpiar queda vacío, usamos el texto original como nombre
+    if (!nombre) nombre = p;
+    return { nombre, statusLabel: statusLabel.trim(), fecha, nota: "" };
+  }).filter(c => c.nombre.length > 1);
 }
 
-function updateKPIs(data){
-  document.getElementById("k-total").textContent=data.length;
-  document.getElementById("k-vacante").textContent=data.filter(d=>d.estatus==="VACANTE").length;
-  document.getElementById("k-entrev").textContent=data.filter(d=>d.estatus==="EN PROCESO ENTREVISTA").length;
-  document.getElementById("k-oferta").textContent=data.filter(d=>d.estatus==="EN PROCESO DE OFERTA"||d.estatus==="EN PROCESO DE INGRESO").length;
-  document.getElementById("k-alta").textContent=data.filter(d=>d.prio==="ALTA").length;
+// ── FILTROS ────────────────────────────────────────────────────
+const unique = (arr, k) => [...new Set(arr.map(d => d[k]).filter(Boolean))].sort();
+const group  = (arr, k) => arr.reduce((m, d) => { (m[d[k]] = m[d[k]] || []).push(d); return m; }, {});
+
+function initFilters() {
+  const resetSelect = id => {
+    const s = document.getElementById(id);
+    const val = s.value;
+    s.innerHTML = "";
+    return { s, val };
+  };
+  const addOpts = (s, vals, defaultLabel) => {
+    const def = document.createElement("option"); def.value = ""; def.textContent = defaultLabel; s.appendChild(def);
+    vals.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; s.appendChild(o); });
+  };
+
+  let {s, val} = resetSelect("f-vp");   addOpts(s, unique(DATA,"vp"),  "Todas");  s.value = val;
+  ({s, val} = resetSelect("f-dept"));   addOpts(s, unique(DATA,"dir"), "Todos");  s.value = val;
+  ({s, val} = resetSelect("f-nivel"));  addOpts(s, unique(DATA,"nivel"),"Todos"); s.value = val;
+  ({s, val} = resetSelect("f-tipo"));   addOpts(s, unique(DATA,"tipo"), "Todos"); s.value = val;
+  ({s, val} = resetSelect("f-loc"));    addOpts(s, unique(DATA,"loc"),  "Todas"); s.value = val;
+  ({s, val} = resetSelect("f-prio"));   addOpts(s, ["ALTA","MEDIA"],    "Todas"); s.value = val;
+
+  const fEst = resetSelect("f-estatus");
+  addOpts(fEst.s, [], "Todos");
+  Object.entries(STATUS).forEach(([v, cfg]) => {
+    const o = document.createElement("option"); o.value = v; o.textContent = cfg.label; fEst.s.appendChild(o);
+  });
+  fEst.s.value = fEst.val;
 }
 
-Chart.defaults.color="rgba(232,240,250,0.7)";
-Chart.defaults.font={family:"'DM Sans',sans-serif",size:11};
-
-function updateBarChart(data){
-  const byVP=group(data,"vp");
-  const vps=Object.keys(byVP).sort((a,b)=>byVP[b].length-byVP[a].length);
-  const statuses=Object.keys(STATUS);
-  const datasets=statuses.map(s=>({label:STATUS[s].label,data:vps.map(vp=>(byVP[vp]||[]).filter(r=>r.estatus===s).length),backgroundColor:STATUS[s].color+"CC",borderColor:STATUS[s].color,borderWidth:0,borderRadius:4,borderSkipped:false}));
-  const labels=vps.map(v=>v.length>18?v.substring(0,17)+"…":v);
-  if(barChart)barChart.destroy();
-  barChart=new Chart(document.getElementById("chart-bar"),{type:"bar",data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",plugins:{legend:{position:"bottom",labels:{padding:14,boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:"circle"}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}`}}},scales:{x:{stacked:true,grid:{color:"rgba(255,255,255,0.06)"},ticks:{stepSize:1}},y:{stacked:true,grid:{display:false}}}}});
+function getFiltered() {
+  const fVP   = document.getElementById("f-vp").value;
+  const fDept = document.getElementById("f-dept").value;
+  const fEst  = document.getElementById("f-estatus").value;
+  const fNiv  = document.getElementById("f-nivel").value;
+  const fTipo = document.getElementById("f-tipo").value;
+  const fPrio = document.getElementById("f-prio").value;
+  const fLoc  = document.getElementById("f-loc").value;
+  return DATA.filter(r =>
+    (!fVP   || r.vp      === fVP)   &&
+    (!fDept || r.dir     === fDept) &&
+    (!fEst  || r.estatus === fEst)  &&
+    (!fNiv  || r.nivel   === fNiv)  &&
+    (!fTipo || r.tipo    === fTipo) &&
+    (!fPrio || r.prio    === fPrio) &&
+    (!fLoc  || r.loc     === fLoc)
+  );
 }
 
-function updateDonutChart(data){
-  const statuses=Object.keys(STATUS);
-  const counts=statuses.map(s=>data.filter(d=>d.estatus===s).length);
-  const colors=statuses.map(s=>STATUS[s].color);
-  const labels=statuses.map(s=>STATUS[s].label);
-  if(donutChart)donutChart.destroy();
-  donutChart=new Chart(document.getElementById("chart-donut"),{type:"doughnut",data:{labels,datasets:[{data:counts,backgroundColor:colors.map(c=>c+"CC"),borderColor:colors,borderWidth:1.5,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:"66%",plugins:{legend:{position:"bottom",labels:{padding:14,boxWidth:10,usePointStyle:true,pointStyle:"circle"}},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${Math.round(c.raw/data.length*100)||0}%)`}}}}});
+// ── KPIs ───────────────────────────────────────────────────────
+function updateKPIs(data) {
+  document.getElementById("k-total").textContent   = data.length;
+  document.getElementById("k-vacante").textContent = data.filter(d => d.estatus === "VACANTE").length;
+  document.getElementById("k-entrev").textContent  = data.filter(d => d.estatus === "EN PROCESO ENTREVISTA").length;
+  document.getElementById("k-oferta").textContent  = data.filter(d => d.estatus === "EN PROCESO DE OFERTA" || d.estatus === "EN PROCESO DE INGRESO").length;
+  document.getElementById("k-alta").textContent    = data.filter(d => d.prio === "ALTA").length;
 }
 
-function badge(cls,text){return `<span class="badge ${cls}"><span class="badge-dot"></span>${text}</span>`;}
-function statusBadge(s){const cfg=STATUS[s];return cfg?badge(cfg.cls,cfg.label):`<span class="badge b-nivel">${s}</span>`;}
-function candidateSummary(row){const cands=row.candidatos.filter(c=>c.nombre);if(!cands.length)return`<span class="no-candidates">—</span>`;return`<span class="has-candidates">👤 ${cands.length} candidato${cands.length>1?"s":""}</span>`;}
+// ── GRÁFICAS ───────────────────────────────────────────────────
+Chart.defaults.color = "rgba(232,240,250,0.7)";
+Chart.defaults.font  = {family:"'DM Sans',sans-serif", size:11};
 
-function updateTable(data){
-  const sorted=[...data].sort((a,b)=>{const va=(a[sortCol]||"").toLowerCase(),vb=(b[sortCol]||"").toLowerCase();return sortAsc?va.localeCompare(vb):vb.localeCompare(va);});
-  document.getElementById("table-badge").textContent=`· ${data.length} resultado${data.length!==1?"s":""}`;
-  document.getElementById("table-count").textContent=`Mostrando ${data.length} de ${DATA.length} vacantes activas`;
-  document.querySelectorAll("thead th").forEach(th=>{th.classList.toggle("sorted",th.dataset.col===sortCol);if(th.dataset.col===sortCol)th.querySelector(".sort-icon").textContent=sortAsc?"↑":"↓";else if(th.querySelector(".sort-icon"))th.querySelector(".sort-icon").textContent="↕";});
-  const tbody=document.getElementById("tbody");
-  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state">No hay vacantes que coincidan con los filtros.</div></td></tr>`;return;}
-  tbody.innerHTML=sorted.map(d=>`<tr onclick="openDrawer('${d.req}')"><td class="td-req">${d.req}</td><td class="td-cargo">${d.cargo}</td><td class="td-vp">${d.vp}</td><td class="td-dir">${d.dir}</td><td>${badge("b-nivel",d.nivel)}</td><td style="font-size:12px;color:rgba(232,240,250,0.65)">${d.loc}</td><td>${badge("b-tipo",d.tipo)}</td><td>${badge(d.prio==="ALTA"?"b-alta":"b-media",d.prio)}</td><td>${statusBadge(d.estatus)}</td><td>${candidateSummary(d)}</td></tr>`).join("");
+function updateBarChart(data) {
+  const byVP = group(data, "vp");
+  const vps  = Object.keys(byVP).sort((a,b) => byVP[b].length - byVP[a].length);
+  const datasets = Object.keys(STATUS).map(s => ({
+    label: STATUS[s].label,
+    data:  vps.map(vp => (byVP[vp]||[]).filter(r => r.estatus === s).length),
+    backgroundColor: STATUS[s].color + "CC",
+    borderColor: STATUS[s].color,
+    borderWidth: 0, borderRadius: 4, borderSkipped: false,
+  }));
+  if (barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById("chart-bar"), {
+    type:"bar",
+    data:{labels: vps.map(v => v.length>18 ? v.substring(0,17)+"…" : v), datasets},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",
+      plugins:{legend:{position:"bottom",labels:{padding:14,boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:"circle"}},
+               tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}`}}},
+      scales:{x:{stacked:true,grid:{color:"rgba(255,255,255,0.06)"},ticks:{stepSize:1}},
+              y:{stacked:true,grid:{display:false}}}}
+  });
 }
 
-function openDrawer(req){
-  const row=DATA.find(d=>d.req===req);if(!row)return;
-  document.getElementById("d-req").textContent=row.req;
-  document.getElementById("d-cargo").textContent=row.cargo;
-  document.getElementById("d-vp").textContent=`${row.vp} · ${row.dir} · ${row.loc}`;
-  const cfg=STATUS[row.estatus];
-  document.getElementById("d-badges").innerHTML=`${badge(cfg?cfg.cls:"b-nivel",cfg?cfg.label:row.estatus)} ${badge(row.prio==="ALTA"?"b-alta":"b-media",row.prio)} ${badge("b-tipo",row.tipo)}`;
-  const cands=row.candidatos.filter(c=>c.nombre);
-  const dCands=document.getElementById("d-candidates");
-  if(!cands.length){dCands.innerHTML=`<div class="no-cand-msg"><div style="font-size:24px;margin-bottom:8px">🔍</div>Sin candidatos registrados aún</div>`;}
-  else{dCands.innerHTML=cands.map(c=>`<div class="candidate-card"><div class="candidate-name">${c.nombre}</div><div class="candidate-status"><span style="width:7px;height:7px;border-radius:50%;background:${cfg?cfg.color:"#888"};display:inline-block;flex-shrink:0"></span>${c.statusLabel}</div>${c.fecha?`<div class="candidate-date">📅 ${c.fecha}</div>`:""}${c.nota?`<div class="candidate-note">${c.nota}</div>`:""}</div>`).join("");}
-  document.getElementById("d-meta").innerHTML=`<div class="drawer-section-title" style="margin-bottom:10px">Detalle de la vacante</div><div class="meta-row"><span class="meta-key">Fecha requerimiento</span><span class="meta-val">${row.fecha}</span></div><div class="meta-row"><span class="meta-key">Responsable</span><span class="meta-val">${row.responsable}</span></div><div class="meta-row"><span class="meta-key">Persona de contacto</span><span class="meta-val">${row.contacto}</span></div><div class="meta-row"><span class="meta-key">Tipo de contrato</span><span class="meta-val">${row.contrato}</span></div><div class="meta-row"><span class="meta-key">Nivel</span><span class="meta-val">${row.nivel}</span></div>${row.comentario?`<div class="meta-row" style="align-items:flex-start;margin-top:4px"><span class="meta-key">Comentarios</span><span class="meta-val" style="color:rgba(232,240,250,0.55);font-style:italic;font-weight:400">${row.comentario}</span></div>`:""}`;
+function updateDonutChart(data) {
+  const statuses = Object.keys(STATUS);
+  const counts = statuses.map(s => data.filter(d => d.estatus === s).length);
+  if (donutChart) donutChart.destroy();
+  donutChart = new Chart(document.getElementById("chart-donut"), {
+    type:"doughnut",
+    data:{labels: statuses.map(s => STATUS[s].label),
+          datasets:[{data:counts, backgroundColor:statuses.map(s=>STATUS[s].color+"CC"),
+                     borderColor:statuses.map(s=>STATUS[s].color), borderWidth:1.5, hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"66%",
+      plugins:{legend:{position:"bottom",labels:{padding:14,boxWidth:10,usePointStyle:true,pointStyle:"circle"}},
+               tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${Math.round(c.raw/data.length*100)||0}%)`}}}}
+  });
+}
+
+// ── TABLA ──────────────────────────────────────────────────────
+function badge(cls, text) { return `<span class="badge ${cls}"><span class="badge-dot"></span>${text}</span>`; }
+function statusBadge(s) { const cfg=STATUS[s]; return cfg ? badge(cfg.cls,cfg.label) : `<span class="badge b-nivel">${s||"—"}</span>`; }
+function candidateSummary(row) {
+  const n = row.candidatos.filter(c=>c.nombre).length;
+  return n ? `<span class="has-candidates">👤 ${n} candidato${n>1?"s":""}</span>` : `<span class="no-candidates">—</span>`;
+}
+
+function updateTable(data) {
+  const sorted = [...data].sort((a,b) => {
+    const va=(a[sortCol]||"").toLowerCase(), vb=(b[sortCol]||"").toLowerCase();
+    return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  document.getElementById("table-badge").textContent = `· ${data.length} resultado${data.length!==1?"s":""}`;
+  document.getElementById("table-count").textContent = `Mostrando ${data.length} de ${DATA.length} vacantes activas`;
+  document.querySelectorAll("thead th").forEach(th => {
+    th.classList.toggle("sorted", th.dataset.col === sortCol);
+    const icon = th.querySelector(".sort-icon");
+    if (icon) icon.textContent = th.dataset.col===sortCol ? (sortAsc?"↑":"↓") : "↕";
+  });
+  const tbody = document.getElementById("tbody");
+  if (!sorted.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">No hay vacantes que coincidan con los filtros.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = sorted.map(d => `
+    <tr onclick="openDrawer('${d.req}')">
+      <td class="td-req">${d.req}</td>
+      <td class="td-cargo">${d.cargo}</td>
+      <td style="font-size:11px;color:rgba(232,240,250,0.7)">${d.vp}</td>
+      <td style="font-size:11px;color:rgba(232,240,250,0.6)">${d.dir}</td>
+      <td>${badge("b-nivel",d.nivel)}</td>
+      <td style="font-size:12px;color:rgba(232,240,250,0.65)">${d.loc}</td>
+      <td>${badge("b-tipo",d.tipo||"—")}</td>
+      <td>${badge(d.prio==="ALTA"?"b-alta":"b-media",d.prio)}</td>
+      <td>${statusBadge(d.estatus)}</td>
+      <td>${candidateSummary(d)}</td>
+    </tr>`).join("");
+}
+
+// ── DRAWER ─────────────────────────────────────────────────────
+function openDrawer(req) {
+  const row = DATA.find(d => d.req === req);
+  if (!row) return;
+  document.getElementById("d-req").textContent   = row.req;
+  document.getElementById("d-cargo").textContent = row.cargo;
+  document.getElementById("d-vp").textContent    = `${row.vp} · ${row.dir} · ${row.loc}`;
+  const cfg = STATUS[row.estatus];
+  document.getElementById("d-badges").innerHTML  =
+    `${badge(cfg?cfg.cls:"b-nivel", cfg?cfg.label:row.estatus)} ${badge(row.prio==="ALTA"?"b-alta":"b-media",row.prio)} ${badge("b-tipo",row.tipo||"—")}`;
+
+  const cands = row.candidatos.filter(c => c.nombre);
+  const dCands = document.getElementById("d-candidates");
+  if (!cands.length) {
+    dCands.innerHTML = `<div class="no-cand-msg"><div style="font-size:24px;margin-bottom:8px">🔍</div>Sin candidatos registrados aún</div>`;
+  } else {
+    dCands.innerHTML = cands.map(c => `
+      <div class="candidate-card">
+        <div class="candidate-name">${c.nombre}</div>
+        <div class="candidate-status">
+          <span style="width:7px;height:7px;border-radius:50%;background:${cfg?cfg.color:"#888"};display:inline-block;flex-shrink:0"></span>
+          ${c.statusLabel}
+        </div>
+        ${c.fecha ? `<div class="candidate-date">📅 ${c.fecha}</div>` : ""}
+        ${c.nota  ? `<div class="candidate-note">${c.nota}</div>` : ""}
+      </div>`).join("");
+  }
+
+  document.getElementById("d-meta").innerHTML = `
+    <div class="drawer-section-title" style="margin-bottom:10px">Detalle de la vacante</div>
+    <div class="meta-row"><span class="meta-key">Fecha requerimiento</span><span class="meta-val">${row.fecha}</span></div>
+    <div class="meta-row"><span class="meta-key">Responsable</span><span class="meta-val">${row.responsable}</span></div>
+    <div class="meta-row"><span class="meta-key">Persona de contacto</span><span class="meta-val">${row.contacto}</span></div>
+    <div class="meta-row"><span class="meta-key">Tipo de contrato</span><span class="meta-val">${row.contrato}</span></div>
+    <div class="meta-row"><span class="meta-key">Nivel</span><span class="meta-val">${row.nivel}</span></div>
+    ${row.comentario ? `<div class="meta-row" style="align-items:flex-start"><span class="meta-key">Comentarios</span><span class="meta-val" style="color:rgba(232,240,250,0.55);font-style:italic;font-weight:400">${row.comentario}</span></div>` : ""}`;
+
   document.getElementById("overlay").classList.add("open");
   document.getElementById("drawer").classList.add("open");
 }
 
-function closeDrawer(){document.getElementById("overlay").classList.remove("open");document.getElementById("drawer").classList.remove("open");}
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
-function sortBy(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}refresh();}
-function resetFilters(){["f-vp","f-dept","f-estatus","f-nivel","f-tipo","f-prio","f-loc"].forEach(id=>document.getElementById(id).value="");refresh();}
-function refresh(){const data=getFiltered();updateKPIs(data);updateBarChart(data);updateDonutChart(data);updateTable(data);}
+function closeDrawer() {
+  document.getElementById("overlay").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open");
+}
+document.addEventListener("keydown", e => { if(e.key==="Escape") closeDrawer(); });
 
-populateFilters();
-["f-vp","f-dept","f-estatus","f-nivel","f-tipo","f-prio","f-loc"].forEach(id=>document.getElementById(id).addEventListener("change",refresh));
-refresh();
+// ── SORT / FILTROS / REFRESH ───────────────────────────────────
+function sortBy(col) { if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=true;} refresh(); }
+function resetFilters() {
+  ["f-vp","f-dept","f-estatus","f-nivel","f-tipo","f-prio","f-loc"].forEach(id => document.getElementById(id).value = "");
+  refresh();
+}
+function refresh() {
+  const data = getFiltered();
+  updateKPIs(data); updateBarChart(data); updateDonutChart(data); updateTable(data);
+}
+
+["f-vp","f-dept","f-estatus","f-nivel","f-tipo","f-prio","f-loc"].forEach(id =>
+  document.getElementById(id).addEventListener("change", refresh)
+);
+
+// ── INICIO ─────────────────────────────────────────────────────
+loadData();
 </script>
 </body>
 </html>
