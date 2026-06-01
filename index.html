@@ -55,7 +55,7 @@
         .ms-arrow{font-size:9px;color:var(--muted);flex-shrink:0;transition:transform .2s}
         .ms-btn.open .ms-arrow{transform:rotate(180deg)}
 
-        .ms-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:200px;background:#0d2540;border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-sm);z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);overflow:hidden;display:none}
+        .ms-dropdown{position:fixed;min-width:200px;background:#0d2540;border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-sm);z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);overflow:hidden;display:none}
         .ms-dropdown.open{display:block}
         .ms-search{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-family:var(--font);font-size:12px;color:var(--text);outline:none}
         .ms-search::placeholder{color:var(--muted)}
@@ -380,7 +380,15 @@ function buildFilterDropdowns() {
       e.stopPropagation();
       const isOpen = dd.classList.contains("open");
       closeAllDropdowns();
-      if (!isOpen) { dd.classList.add("open"); btn.classList.add("open"); if(search) search.focus(); }
+      if (!isOpen) {
+        const rect = btn.getBoundingClientRect();
+        dd.style.top  = (rect.bottom + 4) + "px";
+        dd.style.left = rect.left + "px";
+        dd.style.minWidth = Math.max(rect.width, 200) + "px";
+        dd.classList.add("open");
+        btn.classList.add("open");
+        if(search) search.focus();
+      }
     });
 
     if (search) {
