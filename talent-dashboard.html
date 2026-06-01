@@ -1,0 +1,1987 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard · Adquisición de Talento</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+         :root {
+            --navy: #0b3d6b;
+            --navy-mid: #114f8a;
+            --navy-light: #1a6db5;
+            --accent: #00c6a7;
+            --accent2: #ffb347;
+            --danger: #ff6b6b;
+            --sky: #5eaaf7;
+            --purple: #9b7fea;
+            --bg: #071e38;
+            --surface: #0e2a47;
+            --surface2: #132f52;
+            --border: rgba(255, 255, 255, 0.09);
+            --text: #e8f0fa;
+            --muted: rgba(232, 240, 250, 0.5);
+            --font: "DM Sans", sans-serif;
+            --mono: "DM Mono", monospace;
+            --radius: 12px;
+            --radius-sm: 7px;
+        }
+        
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient( ellipse 60% 40% at 80% 10%, rgba(0, 198, 167, 0.07) 0%, transparent 60%), radial-gradient( ellipse 50% 50% at 10% 80%, rgba(26, 109, 181, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 28px 20px 60px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .logo-area h1 {
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+        
+        .logo-area h1 span {
+            color: var(--accent);
+        }
+        
+        .logo-area p {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        
+        .date-badge {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent);
+            background: rgba(0, 198, 167, 0.1);
+            border: 1px solid rgba(0, 198, 167, 0.25);
+            padding: 6px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .kpi-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .kpi-card.c-total::before {
+            background: var(--sky);
+        }
+        
+        .kpi-card.c-vac::before {
+            background: var(--purple);
+        }
+        
+        .kpi-card.c-entrev::before {
+            background: var(--accent2);
+        }
+        
+        .kpi-card.c-oferta::before {
+            background: var(--sky);
+        }
+        
+        .kpi-card.c-alta::before {
+            background: var(--danger);
+        }
+        
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+        
+        .kpi-val {
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.03em;
+        }
+        
+        .kpi-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        
+        .kpi-card.c-total .kpi-val {
+            color: var(--sky);
+        }
+        
+        .kpi-card.c-vac .kpi-val {
+            color: var(--purple);
+        }
+        
+        .kpi-card.c-entrev .kpi-val {
+            color: var(--accent2);
+        }
+        
+        .kpi-card.c-oferta .kpi-val {
+            color: var(--sky);
+        }
+        
+        .kpi-card.c-alta .kpi-val {
+            color: var(--danger);
+        }
+        
+        .filter-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-bar-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .filter-group label {
+            font-size: 11px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        
+        .filter-group select {
+            font-family: var(--font);
+            font-size: 12px;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(232,240,250,0.4)'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 24px;
+        }
+        
+        .filter-group select:focus {
+            border-color: var(--accent);
+        }
+        
+        .filter-group select option {
+            background: #0e2a47;
+        }
+        
+        .btn-reset {
+            font-family: var(--font);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-sm);
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .btn-reset:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+        }
+        
+        .chart-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        
+        .chart-title span {
+            color: var(--accent);
+            font-weight: 400;
+            font-size: 11px;
+            margin-left: 6px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        
+        .chart-wrap {
+            position: relative;
+            height: 250px;
+        }
+        
+        .table-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .table-header-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        
+        .table-header-title span {
+            color: var(--accent);
+        }
+        
+        .table-count {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+        
+        .table-wrap {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+        
+        thead th {
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+        
+        thead th:hover {
+            color: var(--text);
+        }
+        
+        thead th .sort-icon {
+            margin-left: 4px;
+            opacity: 0.4;
+            font-style: normal;
+        }
+        
+        thead th.sorted .sort-icon {
+            opacity: 1;
+            color: var(--accent);
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+        
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        
+        tbody td {
+            padding: 12px 14px;
+            vertical-align: middle;
+        }
+        
+        .td-req {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+        
+        .td-cargo {
+            font-weight: 600;
+            color: var(--text);
+            max-width: 200px;
+        }
+        
+        .td-vp {
+            font-size: 11px;
+            color: rgba(232, 240, 250, 0.7);
+            max-width: 160px;
+        }
+        
+        .td-dir {
+            font-size: 11px;
+            color: rgba(232, 240, 250, 0.6);
+            max-width: 140px;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        
+        .badge-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .b-entrevista {
+            background: rgba(255, 179, 71, 0.15);
+            color: #ffcc7a;
+            border: 1px solid rgba(255, 179, 71, 0.25);
+        }
+        
+        .b-entrevista .badge-dot {
+            background: #ffb347;
+        }
+        
+        .b-ingreso {
+            background: rgba(0, 198, 167, 0.15);
+            color: #5eefd8;
+            border: 1px solid rgba(0, 198, 167, 0.25);
+        }
+        
+        .b-ingreso .badge-dot {
+            background: var(--accent);
+        }
+        
+        .b-oferta {
+            background: rgba(94, 170, 247, 0.15);
+            color: #8dc8ff;
+            border: 1px solid rgba(94, 170, 247, 0.25);
+        }
+        
+        .b-oferta .badge-dot {
+            background: var(--sky);
+        }
+        
+        .b-vacante {
+            background: rgba(155, 127, 234, 0.15);
+            color: #c8b2ff;
+            border: 1px solid rgba(155, 127, 234, 0.25);
+        }
+        
+        .b-vacante .badge-dot {
+            background: var(--purple);
+        }
+        
+        .b-alta {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff9f9f;
+            border: 1px solid rgba(255, 107, 107, 0.25);
+        }
+        
+        .b-media {
+            background: rgba(255, 179, 71, 0.12);
+            color: #ffc97a;
+            border: 1px solid rgba(255, 179, 71, 0.2);
+        }
+        
+        .b-nivel {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(232, 240, 250, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .b-tipo {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(232, 240, 250, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .has-candidates {
+            color: var(--accent);
+            font-size: 11px;
+            font-family: var(--mono);
+        }
+        
+        .no-candidates {
+            color: var(--muted);
+            font-size: 11px;
+            font-family: var(--mono);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        /* DRAWER */
+        
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            backdrop-filter: blur(3px);
+        }
+        
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 420px;
+            max-width: 96vw;
+            background: #0e2847;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 101;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .drawer.open {
+            transform: translateX(0);
+        }
+        
+        .drawer-head {
+            padding: 20px 22px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+            flex-shrink: 0;
+        }
+        
+        .drawer-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.07);
+            border: none;
+            color: var(--muted);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        
+        .drawer-close:hover {
+            background: rgba(255, 107, 107, 0.2);
+            color: var(--danger);
+        }
+        
+        .drawer-req {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        
+        .drawer-cargo {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            padding-right: 32px;
+        }
+        
+        .drawer-vp {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+        
+        .drawer-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .drawer-body {
+            padding: 20px 22px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .drawer-section-title {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+        
+        .candidate-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+        
+        .candidate-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .candidate-status {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .candidate-date {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent2);
+            margin-top: 6px;
+        }
+        
+        .candidate-note {
+            font-size: 12px;
+            color: rgba(232, 240, 250, 0.55);
+            margin-top: 6px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        
+        .no-cand-msg {
+            text-align: center;
+            padding: 32px 16px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        
+        .drawer-meta {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 12px;
+        }
+        
+        .meta-row .meta-key {
+            color: var(--muted);
+        }
+        
+        .meta-row .meta-val {
+            color: var(--text);
+            font-weight: 500;
+            text-align: right;
+            max-width: 230px;
+        }
+        
+        @media (max-width: 900px) {
+            .kpi-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+        
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+        
+        .kpi-card {
+            animation: fadeUp 0.4s ease both;
+        }
+        
+        .kpi-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+        
+        .kpi-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+        
+        .kpi-card:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+        
+        .kpi-card:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+        
+        .kpi-card:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+        
+        .chart-card,
+        .filter-bar,
+        .table-section {
+            animation: fadeUp 0.45s 0.3s ease both;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <header>
+            <div class="logo-area">
+                <img src="https://firebasestorage.googleapis.com/v0/b/transformacion-rrhh.firebasestorage.app/o/public%2FBlanco---Horizontal%20(1).png?alt=media&token=1f6c2823-fa0e-4807-acdf-cfd24baeb315" alt="Logo" style="width: 150px" />
+                <h1>Adquisición de <span>Talento</span></h1>
+                <p>Dashboard de vacantes activas</p>
+            </div>
+            <div class="date-badge">Mayo 2026</div>
+        </header>
+
+        <div class="kpi-grid">
+            <div class="kpi-card c-total">
+                <div class="kpi-label">Total activas</div>
+                <div class="kpi-val" id="k-total">—</div>
+                <div class="kpi-sub">vacantes en proceso</div>
+            </div>
+            <div class="kpi-card c-vac">
+                <div class="kpi-label">Vacante</div>
+                <div class="kpi-val" id="k-vacante">—</div>
+                <div class="kpi-sub">por iniciar proceso</div>
+            </div>
+            <div class="kpi-card c-entrev">
+                <div class="kpi-label">En entrevista</div>
+                <div class="kpi-val" id="k-entrev">—</div>
+                <div class="kpi-sub">candidatos evaluándose</div>
+            </div>
+            <div class="kpi-card c-oferta">
+                <div class="kpi-label">Oferta / Ingreso</div>
+                <div class="kpi-val" id="k-oferta">—</div>
+                <div class="kpi-sub">próximas a cerrarse</div>
+            </div>
+            <div class="kpi-card c-alta">
+                <div class="kpi-label">Prioridad alta</div>
+                <div class="kpi-val" id="k-alta">—</div>
+                <div class="kpi-sub">requieren atención urgente</div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <span class="filter-bar-label">Filtros</span>
+            <div class="filter-group">
+                <label>Vicepresidencia</label
+					><select id="f-vp">
+						<option value="">Todas</option>
+					</select>
+				</div>
+				<div class="filter-group">
+					<label>Departamento</label
+					><select id="f-dept">
+						<option value="">Todos</option>
+					</select>
+				</div>
+				<div class="filter-group">
+					<label>Estatus</label
+					><select id="f-estatus">
+						<option value="">Todos</option>
+					</select>
+				</div>
+				<div class="filter-group">
+					<label>Nivel de cargo</label
+					><select id="f-nivel">
+						<option value="">Todos</option>
+					</select>
+				</div>
+				<div class="filter-group">
+					<label>Tipo de vacante</label
+					><select id="f-tipo">
+						<option value="">Todos</option>
+					</select>
+				</div>
+				<div class="filter-group">
+					<label>Prioridad</label
+					><select id="f-prio">
+						<option value="">Todas</option>
+					</select>
+				</div>
+				<div class="filter-group">
+					<label>Localidad</label
+					><select id="f-loc">
+						<option value="">Todas</option>
+					</select>
+				</div>
+				<button class="btn-reset" onclick="resetFilters()">✕ Limpiar</button>
+			</div>
+
+			<div class="charts-row">
+				<div class="chart-card">
+					<div class="chart-title">
+						Vacantes por vicepresidencia
+						<span>barras apiladas por estatus</span>
+					</div>
+					<div class="chart-wrap"><canvas id="chart-bar"></canvas></div>
+				</div>
+				<div class="chart-card">
+					<div class="chart-title">Distribución <span>por estatus</span></div>
+					<div class="chart-wrap"><canvas id="chart-donut"></canvas></div>
+				</div>
+			</div>
+
+			<div class="table-section">
+				<div class="table-header">
+					<div>
+						<div class="table-header-title">
+							Listado de vacantes <span id="table-badge">·</span>
+						</div>
+						<div class="table-count" id="table-count"></div>
+					</div>
+					<div style="font-size: 11px; color: var(--muted)">
+						Haz clic en una fila para ver candidatos
+					</div>
+				</div>
+				<div class="table-wrap">
+					<table id="main-table">
+						<thead>
+							<tr>
+								<th data-col="req" onclick="sortBy('req')">
+									#REQ <i class="sort-icon">↕</i>
+								</th>
+								<th data-col="cargo" onclick="sortBy('cargo')">
+									Cargo <i class="sort-icon">↕</i>
+								</th>
+								<th data-col="vp" onclick="sortBy('vp')">
+									Vicepresidencia <i class="sort-icon">↕</i>
+								</th>
+								<th data-col="dir" onclick="sortBy('dir')">
+									Departamento <i class="sort-icon">↕</i>
+								</th>
+								<th data-col="nivel" onclick="sortBy('nivel')">
+									Nivel <i class="sort-icon">↕</i>
+								</th>
+								<th data-col="loc" onclick="sortBy('loc')">
+									Localidad <i class="sort-icon">↕</i>
+								</th>
+								<th data-col="tipo" onclick="sortBy('tipo')">
+									Tipo <i class="sort-icon">↕</i>
+								</th>
+								<th data-col="prio" onclick="sortBy('prio')">
+									Prioridad <i class="sort-icon">↕</i>
+								</th>
+								<th data-col="estatus" onclick="sortBy('estatus')">
+									Estatus <i class="sort-icon">↕</i>
+								</th>
+								<th>Candidatos</th>
+							</tr>
+						</thead>
+						<tbody id="tbody"></tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<!-- DRAWER -->
+		<div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+		<div class="drawer" id="drawer">
+			<button class="drawer-close" onclick="closeDrawer()">✕</button>
+			<div class="drawer-head">
+				<div class="drawer-req" id="d-req"></div>
+				<div class="drawer-cargo" id="d-cargo"></div>
+				<div class="drawer-vp" id="d-vp"></div>
+				<div class="drawer-badges" id="d-badges"></div>
+			</div>
+			<div class="drawer-body">
+				<div class="drawer-section-title">Candidatos postulados</div>
+				<div id="d-candidates"></div>
+				<div class="drawer-meta" id="d-meta"></div>
+			</div>
+		</div>
+
+		<script>
+			const DATA = [
+				{
+					req: "RQ-154",
+					prio: "ALTA",
+					fecha: "20/03/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "ADMINISTRACION Y FINANZAS",
+					dir: "NOMINA",
+					loc: "CARACAS",
+					contacto: "Javier Diaz",
+					estatus: "EN PROCESO DE INGRESO",
+					tipo: "Egreso",
+					cargo: "ANALISTA DE NOMINA",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Vanessa Aliño",
+							statusLabel: "En proceso de Ingreso",
+							fecha: "25 de Mayo",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-153",
+					prio: "MEDIA",
+					fecha: "22/04/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "ADMINISTRACION Y FINANZAS",
+					dir: "ASEGURAMIENTO DE INGRESOS",
+					loc: "CARACAS",
+					contacto: "Alejandro del Turco",
+					estatus: "EN PROCESO DE OFERTA",
+					tipo: "Egreso",
+					cargo: "ANALISTA DE ASEGURAMIENTO DE INGRESOS",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Maria Daniela Cuervo",
+							statusLabel: "En proceso de Oferta",
+							fecha: "",
+							nota: "Trainee de TI seleccionada",
+						},
+					],
+				},
+
+				{
+					req: "RQ-143",
+					prio: "MEDIA",
+					fecha: "21/02/2026",
+					responsable: "CLAUDIA VELOZO",
+					vp: "ADMINISTRACION Y FINANZAS",
+					dir: "CONTABILIDAD",
+					loc: "CARACAS",
+					contacto: "Karla Barraza",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Egreso",
+					cargo: "ANALISTA DE CONTABILIDAD",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Karelys Ortega",
+							statusLabel: "En entrevista",
+							fecha: "",
+							nota: "",
+						},
+						{
+							nombre: "José Antonio Traboulsi",
+							statusLabel: "En entrevista",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-155",
+					prio: "ALTA",
+					fecha: "31/03/2026",
+					responsable: "CLAUDIA VELOZO",
+					vp: "ADMINISTRACION Y FINANZAS",
+					dir: "IMPUESTOS",
+					loc: "CARACAS",
+					contacto: "Mary Salazar",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Confidencial",
+					cargo: "ANALISTA DE IMPUESTOS",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Guillermo Pinzon",
+							statusLabel: "En entrevista",
+							fecha: "",
+							nota: "Seguimos en la búsqueda aun cuando la vacante no está disponible en el área",
+						},
+					],
+				},
+
+				{
+					req: "RQ-130",
+					prio: "MEDIA",
+					fecha: "08/01/2026",
+					responsable: "DANIELA PLATA",
+					vp: "AUDITORIA",
+					dir: "AUDITORIA",
+					loc: "PTO LA CRUZ",
+					contacto: "Syr Dávila",
+					estatus: "EN PROCESO DE OFERTA",
+					tipo: "Movimiento",
+					cargo: "AUDITOR INTERNO",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Benjamin Saud",
+							statusLabel: "En proceso de Oferta Salarial",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-159",
+					prio: "ALTA",
+					fecha: "08/05/2026",
+					responsable: "DANIELA PLATA",
+					vp: "AUDITORIA",
+					dir: "AUDITORIA",
+					loc: "BARQUISIMETO",
+					contacto: "Yolimar Gois / Jose Valera",
+					estatus: "VACANTE",
+					tipo: "Egreso",
+					cargo: "AUDITOR INTERNO",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [],
+				},
+
+				{
+					req: "RQ-123",
+					prio: "ALTA",
+					fecha: "17/11/2025",
+					responsable: "SOLANGE ECHEVERRIA",
+					vp: "COMERCIAL",
+					dir: "MARCA PROPIA",
+					loc: "CARACAS",
+					contacto: "Stephanie Barraud",
+					estatus: "EN PROCESO DE INGRESO",
+					tipo: "Posicion adicional",
+					cargo: "DIRECTOR DE MARCA PROPIA",
+					nivel: "DIRECTOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Sandra Serrano",
+							statusLabel: "Ingreso confirmado",
+							fecha: "10 de Junio (COL)",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-152",
+					prio: "ALTA",
+					fecha: "14/03/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "COMERCIAL",
+					dir: "MERCADEO",
+					loc: "CARACAS",
+					contacto: "Oscar Tafur",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Egreso",
+					cargo: "ANALISTA DE DISEÑO GRÁFICO",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Vanessa Aponte",
+							statusLabel: "En proceso de Pruebas",
+							fecha: "",
+							nota: "",
+						},
+						{
+							nombre: "Anibal Flores",
+							statusLabel: "En proceso de Pruebas",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-141",
+					prio: "ALTA",
+					fecha: "10/02/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "COMERCIAL",
+					dir: "NEGOCIOS MEDICINAS",
+					loc: "CARACAS",
+					contacto: "Andres Rodriguez / Luis G Hernández",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Egreso",
+					cargo: "ESPECIALISTA COMERCIAL",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Mariana Bravo",
+							statusLabel: "En proceso",
+							fecha: "",
+							nota: "Por espera de Movimiento Interno",
+						},
+					],
+				},
+
+				{
+					req: "RQ-151",
+					prio: "MEDIA",
+					fecha: "10/03/2026",
+					responsable: "SOLANGE ECHEVERRIA",
+					vp: "COMERCIAL",
+					dir: "MARCA PROPIA",
+					loc: "CARACAS",
+					contacto: "Stephanie Barraud",
+					estatus: "VACANTE",
+					tipo: "Posicion adicional",
+					cargo: "COMPRADOR",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "",
+							statusLabel: "En búsqueda",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-156",
+					prio: "MEDIA",
+					fecha: "23/04/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "COMERCIAL",
+					dir: "GLOBAL SOURCING",
+					loc: "CARACAS",
+					contacto: "Dayana Pons",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Posicion adicional",
+					cargo: "COORDINADOR DE COMERCIO EXTERIOR",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Enrique Jeppensen",
+							statusLabel: "En proceso de entrevista",
+							fecha: "",
+							nota: "",
+						},
+						{
+							nombre: "Dayana Montoya",
+							statusLabel: "En proceso de entrevista",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-105",
+					prio: "ALTA",
+					fecha: "17/09/2025",
+					responsable: "SOLANGE ECHEVERRIA",
+					vp: "OPERACIONES",
+					dir: "GERENTE DE AREA",
+					loc: "MARACAIBO",
+					contacto: "Roberto Osorio",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Egreso",
+					cargo: "GERENTE DE AREA",
+					nivel: "GERENTE",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Christian Del Toro",
+							statusLabel: "En proceso de entrevista",
+							fecha: "",
+							nota: "",
+						},
+						{
+							nombre: "Gabriel Dorante",
+							statusLabel: "En proceso de entrevista",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-146",
+					prio: "MEDIA",
+					fecha: "20/02/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "PROTECCIÓN INTEGRAL",
+					dir: "PROTECCIÓN INTEGRAL",
+					loc: "CARACAS",
+					contacto: "Roger Rangel",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Movimiento",
+					cargo: "CONDUCTOR EJECUTIVO",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Luis Llovera",
+							statusLabel: "En entrevista con Abraham Alarcon",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-145",
+					prio: "MEDIA",
+					fecha: "19/02/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "PROTECCIÓN INTEGRAL",
+					dir: "PROTECCIÓN INTEGRAL",
+					loc: "CARACAS",
+					contacto: "Abraham Alarcon",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Movimiento",
+					cargo: "COORDINADOR DE PROTECCIÓN INTEGRAL",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Jesus Aguilar",
+							statusLabel: "Pendiente — enviar pruebas",
+							fecha: "",
+							nota: "",
+						},
+						{
+							nombre: "Indira Alvarez",
+							statusLabel: "Pendiente — enviar pruebas",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-059",
+					prio: "MEDIA",
+					fecha: "26/07/2024",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "RECURSOS HUMANOS",
+					dir: "RRHH OPERACIONES",
+					loc: "MARACAIBO",
+					contacto: "Richard Angulo",
+					estatus: "VACANTE",
+					tipo: "Confidencial",
+					cargo: "COORDINADOR DE RRHH OPERACIONES",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [],
+				},
+
+				{
+					req: "RQ-068",
+					prio: "ALTA",
+					fecha: "26/07/2024",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "RECURSOS HUMANOS",
+					dir: "RRHH OPERACIONES",
+					loc: "MERIDA",
+					contacto: "Richard Angulo",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Confidencial",
+					cargo: "COORDINADOR DE RRHH OPERACIONES",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Yoselin Garcia",
+							statusLabel: "En entrevista",
+							fecha: "",
+							nota: "",
+						},
+						{
+							nombre: "Maria de Los Angeles",
+							statusLabel: "En entrevista",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-150",
+					prio: "ALTA",
+					fecha: "20/01/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "RECURSOS HUMANOS",
+					dir: "RRHH OPERACIONES",
+					loc: "MARACAY",
+					contacto: "Myrel Jasper",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Confidencial",
+					cargo: "COORDINADOR DE RRHH OPERACIONES",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Eddye Ovalles",
+							statusLabel: "En entrevista",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-157",
+					prio: "ALTA",
+					fecha: "30/04/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "RECURSOS HUMANOS",
+					dir: "RECURSOS HUMANOS",
+					loc: "CARACAS",
+					contacto: "Carlos Romero",
+					estatus: "VACANTE",
+					tipo: "Egreso",
+					cargo: "SUPERVISOR DE SEGURIDAD HIGIENE Y AMBIENTE",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [],
+				},
+
+				{
+					req: "RQ-158",
+					prio: "ALTA",
+					fecha: "30/04/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "RECURSOS HUMANOS",
+					dir: "RECURSOS HUMANOS",
+					loc: "CARACAS",
+					contacto: "Myrel Jasper",
+					estatus: "VACANTE",
+					tipo: "—",
+					cargo: "COORDINADOR DE RRHH OPERACIONES",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [],
+				},
+
+				{
+					req: "RQ-162",
+					prio: "ALTA",
+					fecha: "23/04/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "RECURSOS HUMANOS",
+					dir: "TRANSFORMACIÓN RRHH",
+					loc: "CARACAS",
+					contacto: "Omar Perez",
+					estatus: "EN PROCESO DE OFERTA",
+					tipo: "Posicion adicional",
+					cargo: "ESPECIALISTA DE TRANSFORMACIÓN RRHH",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Stefani Perez",
+							statusLabel: "En proceso de Oferta",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-127",
+					prio: "MEDIA",
+					fecha: "03/03/2026",
+					responsable: "DANIELA PLATA",
+					vp: "TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",
+					dir: "NUEVOS NEGOCIOS | TRANSFORMACIÓN DIGITAL",
+					loc: "CARACAS",
+					contacto: "Carlos Kubler / Jhon Puentes",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Posicion adicional",
+					cargo: "DESARROLLADOR BACKEND SEMI SENIOR",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Abril Samara Sar Artiles",
+							statusLabel: "En proceso de Pruebas",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-117",
+					prio: "ALTA",
+					fecha: "10/10/2025",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",
+					dir: "SEGURIDAD DE LA INFORMACIÓN",
+					loc: "CARACAS",
+					contacto: "Juan Sebastian Angel",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Confidencial",
+					cargo: "ESPECIALISTA DE CIBERSEGURIDAD",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Carlos Orozco",
+							statusLabel: "En proceso de entrevista",
+							fecha: "",
+							nota: "",
+						},
+						{
+							nombre: "Adrian Perdomo",
+							statusLabel: "En pruebas Magneto",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-148",
+					prio: "MEDIA",
+					fecha: "26/02/2026",
+					responsable: "DANIELA PLATA",
+					vp: "TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",
+					dir: "CALIDAD Y PRUEBAS",
+					loc: "CARACAS",
+					contacto: "Jorge Bernal",
+					estatus: "EN PROCESO ENTREVISTA",
+					tipo: "Movimiento",
+					cargo: "INGENIERO DE CALIDAD Y PRUEBAS",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Yoel Nierez",
+							statusLabel: "En entrevista",
+							fecha: "",
+							nota: "",
+						},
+						{
+							nombre: "Joe Quintero",
+							statusLabel: "En entrevista",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-154b",
+					prio: "MEDIA",
+					fecha: "23/04/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",
+					dir: "OPERACIONES TI",
+					loc: "CARACAS",
+					contacto: "Edward Castillo",
+					estatus: "VACANTE",
+					tipo: "Movimiento",
+					cargo: "ANALISTA DE AUTOMATIZACIÓN E INTELIGENCIA OPERATIVA",
+					nivel: "ANALISTA",
+					contrato: "INDETERMINADO",
+					candidatos: [],
+				},
+
+				{
+					req: "RQ-155b",
+					prio: "MEDIA",
+					fecha: "23/04/2026",
+					responsable: "MARIA ALEJANDRA HERRERA",
+					vp: "TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",
+					dir: "OPERACIONES TI",
+					loc: "CARACAS",
+					contacto: "Edward Castillo",
+					estatus: "VACANTE",
+					tipo: "Movimiento",
+					cargo: "ESPECIALISTA DE AUTOMATIZACIÓN E INTELIGENCIA OPERATIVA",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [],
+				},
+
+				{
+					req: "RQ-156b",
+					prio: "MEDIA",
+					fecha: "23/04/2026",
+					responsable: "DANIELA PLATA",
+					vp: "TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",
+					dir: "OPERACIONES TI",
+					loc: "CARACAS",
+					contacto: "Edward Castillo",
+					estatus: "EN PROCESO DE OFERTA",
+					tipo: "Egreso",
+					cargo: "COORDINADOR DE AUTOMATIZACIÓN E INTELIGENCIA OPERATIVA",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [
+						{
+							nombre: "Pedro Reyes",
+							statusLabel: "En proceso de Oferta Salarial",
+							fecha: "",
+							nota: "",
+						},
+					],
+				},
+
+				{
+					req: "RQ-161",
+					prio: "MEDIA",
+					fecha: "13/05/2026",
+					responsable: "DANIELA PLATA",
+					vp: "TECNOLOGIA Y TRANSFORMACIÓN DIGITAL",
+					dir: "TRANSFORMACIÓN DIGITAL",
+					loc: "CARACAS",
+					contacto: "Iliushka Pérez",
+					estatus: "VACANTE",
+					tipo: "Movimiento",
+					cargo: "DESARROLLADOR BACKEND SENIOR",
+					nivel: "ESPECIALISTA | COORDINADOR",
+					contrato: "INDETERMINADO",
+					candidatos: [],
+				},
+			];
+
+			const STATUS = {
+				"EN PROCESO ENTREVISTA": {
+					label: "En entrevista",
+					cls: "b-entrevista",
+					color: "#FFB347",
+				},
+				"EN PROCESO DE INGRESO": {
+					label: "En ingreso",
+					cls: "b-ingreso",
+					color: "#00C6A7",
+				},
+				"EN PROCESO DE OFERTA": {
+					label: "En oferta",
+					cls: "b-oferta",
+					color: "#5EAAF7",
+				},
+				VACANTE: {
+					label: "Vacante",
+					cls: "b-vacante",
+					color: "#9B7FEA",
+				},
+			};
+
+			let sortCol = "vp",
+				sortAsc = true,
+				barChart = null,
+				donutChart = null;
+			const unique = (arr, k) =>
+				[...new Set(arr.map((d) => d[k]).filter(Boolean))].sort();
+			const group = (arr, k) =>
+				arr.reduce((m, d) => {
+					(m[d[k]] = m[d[k]] || []).push(d);
+					return m;
+				}, {});
+
+			function getFiltered() {
+				const fVP = document.getElementById("f-vp").value,
+					fDept = document.getElementById("f-dept").value,
+					fEst = document.getElementById("f-estatus").value,
+					fNiv = document.getElementById("f-nivel").value,
+					fTipo = document.getElementById("f-tipo").value,
+					fPrio = document.getElementById("f-prio").value,
+					fLoc = document.getElementById("f-loc").value;
+				return DATA.filter(
+					(r) =>
+						(!fVP || r.vp === fVP) &&
+						(!fDept || r.dir === fDept) &&
+						(!fEst || r.estatus === fEst) &&
+						(!fNiv || r.nivel === fNiv) &&
+						(!fTipo || r.tipo === fTipo) &&
+						(!fPrio || r.prio === fPrio) &&
+						(!fLoc || r.loc === fLoc)
+				);
+			}
+
+			function populateFilters() {
+				const add = (id, vals) => {
+					const s = document.getElementById(id);
+					vals.forEach((v) => {
+						const o = document.createElement("option");
+						o.value = v;
+						o.textContent = v;
+						s.appendChild(o);
+					});
+				};
+				add("f-vp", unique(DATA, "vp"));
+				add("f-dept", unique(DATA, "dir"));
+				const fEst = document.getElementById("f-estatus");
+				Object.entries(STATUS).forEach(([v, cfg]) => {
+					const o = document.createElement("option");
+					o.value = v;
+					o.textContent = cfg.label;
+					fEst.appendChild(o);
+				});
+				add("f-nivel", unique(DATA, "nivel"));
+				add("f-tipo", unique(DATA, "tipo"));
+				add("f-prio", ["ALTA", "MEDIA"]);
+				add("f-loc", unique(DATA, "loc"));
+			}
+
+			function updateKPIs(data) {
+				document.getElementById("k-total").textContent = data.length;
+				document.getElementById("k-vacante").textContent = data.filter(
+					(d) => d.estatus === "VACANTE"
+				).length;
+				document.getElementById("k-entrev").textContent = data.filter(
+					(d) => d.estatus === "EN PROCESO ENTREVISTA"
+				).length;
+				document.getElementById("k-oferta").textContent = data.filter(
+					(d) =>
+						d.estatus === "EN PROCESO DE OFERTA" ||
+						d.estatus === "EN PROCESO DE INGRESO"
+				).length;
+				document.getElementById("k-alta").textContent = data.filter(
+					(d) => d.prio === "ALTA"
+				).length;
+			}
+
+			Chart.defaults.color = "rgba(232,240,250,0.7)";
+			Chart.defaults.font = {
+				family: "'DM Sans',sans-serif",
+				size: 11,
+			};
+
+			function updateBarChart(data) {
+				const byVP = group(data, "vp");
+				const vps = Object.keys(byVP).sort(
+					(a, b) => byVP[b].length - byVP[a].length
+				);
+				const statuses = Object.keys(STATUS);
+				const datasets = statuses.map((s) => ({
+					label: STATUS[s].label,
+					data: vps.map(
+						(vp) => (byVP[vp] || []).filter((r) => r.estatus === s).length
+					),
+					backgroundColor: STATUS[s].color + "CC",
+					borderColor: STATUS[s].color,
+					borderWidth: 0,
+					borderRadius: 4,
+					borderSkipped: false,
+				}));
+				const labels = vps.map((v) =>
+					v.length > 18 ? v.substring(0, 17) + "…" : v
+				);
+				if (barChart) barChart.destroy();
+				barChart = new Chart(document.getElementById("chart-bar"), {
+					type: "bar",
+					data: {
+						labels,
+						datasets,
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						indexAxis: "y",
+						plugins: {
+							legend: {
+								position: "bottom",
+								labels: {
+									padding: 14,
+									boxWidth: 10,
+									boxHeight: 10,
+									usePointStyle: true,
+									pointStyle: "circle",
+								},
+							},
+							tooltip: {
+								callbacks: {
+									label: (c) => ` ${c.dataset.label}: ${c.raw}`,
+								},
+							},
+						},
+						scales: {
+							x: {
+								stacked: true,
+								grid: {
+									color: "rgba(255,255,255,0.06)",
+								},
+								ticks: {
+									stepSize: 1,
+								},
+							},
+							y: {
+								stacked: true,
+								grid: {
+									display: false,
+								},
+							},
+						},
+					},
+				});
+			}
+
+			function updateDonutChart(data) {
+				const statuses = Object.keys(STATUS);
+				const counts = statuses.map(
+					(s) => data.filter((d) => d.estatus === s).length
+				);
+				const colors = statuses.map((s) => STATUS[s].color);
+				const labels = statuses.map((s) => STATUS[s].label);
+				if (donutChart) donutChart.destroy();
+				donutChart = new Chart(document.getElementById("chart-donut"), {
+					type: "doughnut",
+					data: {
+						labels,
+						datasets: [
+							{
+								data: counts,
+								backgroundColor: colors.map((c) => c + "CC"),
+								borderColor: colors,
+								borderWidth: 1.5,
+								hoverOffset: 6,
+							},
+						],
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						cutout: "66%",
+						plugins: {
+							legend: {
+								position: "bottom",
+								labels: {
+									padding: 14,
+									boxWidth: 10,
+									usePointStyle: true,
+									pointStyle: "circle",
+								},
+							},
+							tooltip: {
+								callbacks: {
+									label: (c) =>
+										` ${c.label}: ${c.raw} (${Math.round((c.raw / data.length) * 100) || 0}%)`,
+								},
+							},
+						},
+					},
+				});
+			}
+
+			function badge(cls, text) {
+				return `<span class="badge ${cls}"><span class="badge-dot"></span>${text}</span>`;
+			}
+
+			function statusBadge(s) {
+				const cfg = STATUS[s];
+				return cfg
+					? badge(cfg.cls, cfg.label)
+					: `<span class="badge b-nivel">${s}</span>`;
+			}
+
+			function candidateSummary(row) {
+				const cands = row.candidatos.filter((c) => c.nombre);
+				if (!cands.length) return `<span class="no-candidates">—</span>`;
+				return `<span class="has-candidates">👤 ${cands.length} candidato${cands.length > 1 ? "s" : ""}</span>`;
+			}
+
+			function updateTable(data) {
+				const sorted = [...data].sort((a, b) => {
+					const va = (a[sortCol] || "").toLowerCase(),
+						vb = (b[sortCol] || "").toLowerCase();
+					return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+				});
+				document.getElementById("table-badge").textContent =
+					`· ${data.length} resultado${data.length !== 1 ? "s" : ""}`;
+				document.getElementById("table-count").textContent =
+					`Mostrando ${data.length} de ${DATA.length} vacantes activas`;
+				document.querySelectorAll("thead th").forEach((th) => {
+					th.classList.toggle("sorted", th.dataset.col === sortCol);
+					if (th.dataset.col === sortCol)
+						th.querySelector(".sort-icon").textContent = sortAsc ? "↑" : "↓";
+					else if (th.querySelector(".sort-icon"))
+						th.querySelector(".sort-icon").textContent = "↕";
+				});
+				const tbody = document.getElementById("tbody");
+				if (!sorted.length) {
+					tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">No hay vacantes que coincidan con los filtros.</div></td></tr>`;
+					return;
+				}
+				tbody.innerHTML = sorted
+					.map(
+						(d) => `
+    <tr onclick="openDrawer('${d.req}')">
+      <td class="td-req">${d.req}</td>
+      <td class="td-cargo">${d.cargo}</td>
+      <td class="td-vp">${d.vp}</td>
+      <td class="td-dir">${d.dir}</td>
+      <td>${badge("b-nivel", d.nivel)}</td>
+      <td style="font-size:12px;color:rgba(232,240,250,0.65)">${d.loc}</td>
+      <td>${badge("b-tipo", d.tipo)}</td>
+      <td>${badge(d.prio === "ALTA" ? "b-alta" : "b-media", d.prio)}</td>
+      <td>${statusBadge(d.estatus)}</td>
+      <td>${candidateSummary(d)}</td>
+    </tr>
+  `
+					)
+					.join("");
+			}
+
+			function openDrawer(req) {
+				const row = DATA.find((d) => d.req === req);
+				if (!row) return;
+				document.getElementById("d-req").textContent = row.req;
+				document.getElementById("d-cargo").textContent = row.cargo;
+				document.getElementById("d-vp").textContent =
+					`${row.vp} · ${row.dir} · ${row.loc}`;
+				const cfg = STATUS[row.estatus];
+				document.getElementById("d-badges").innerHTML =
+					`${badge(cfg ? cfg.cls : "b-nivel", cfg ? cfg.label : row.estatus)}
+     ${badge(row.prio === "ALTA" ? "b-alta" : "b-media", row.prio)}
+     ${badge("b-tipo", row.tipo)}`;
+
+				const cands = row.candidatos.filter((c) => c.nombre);
+				const dCands = document.getElementById("d-candidates");
+				if (!cands.length) {
+					dCands.innerHTML = `<div class="no-cand-msg"><div style="font-size:24px;margin-bottom:8px">🔍</div>Sin candidatos registrados aún</div>`;
+				} else {
+					dCands.innerHTML = cands
+						.map(
+							(c) => `
+      <div class="candidate-card">
+        <div class="candidate-name">${c.nombre}</div>
+        <div class="candidate-status"><span style="width:7px;height:7px;border-radius:50%;background:${cfg ? cfg.color : "#888"};display:inline-block;flex-shrink:0"></span>${c.statusLabel}</div>
+        ${c.fecha ? `<div class="candidate-date">📅 ${c.fecha}</div>` : ""}
+        ${c.nota ? `<div class="candidate-note">${c.nota}</div>` : ""}
+      </div>
+    `
+						)
+						.join("");
+				}
+
+				document.getElementById("d-meta").innerHTML = `
+    <div class="drawer-section-title" style="margin-bottom:10px">Detalle de la vacante</div>
+    <div class="meta-row"><span class="meta-key">Fecha requerimiento</span><span class="meta-val">${row.fecha}</span></div>
+    <div class="meta-row"><span class="meta-key">Responsable</span><span class="meta-val">${row.responsable}</span></div>
+    <div class="meta-row"><span class="meta-key">Persona de contacto</span><span class="meta-val">${row.contacto}</span></div>
+    <div class="meta-row"><span class="meta-key">Tipo de contrato</span><span class="meta-val">${row.contrato}</span></div>
+    <div class="meta-row"><span class="meta-key">Nivel</span><span class="meta-val">${row.nivel}</span></div>
+  `;
+
+				document.getElementById("overlay").classList.add("open");
+				document.getElementById("drawer").classList.add("open");
+			}
+
+			function closeDrawer() {
+				document.getElementById("overlay").classList.remove("open");
+				document.getElementById("drawer").classList.remove("open");
+			}
+
+			document.addEventListener("keydown", (e) => {
+				if (e.key === "Escape") closeDrawer();
+			});
+
+			function sortBy(col) {
+				if (sortCol === col) sortAsc = !sortAsc;
+				else {
+					sortCol = col;
+					sortAsc = true;
+				}
+				refresh();
+			}
+
+			function resetFilters() {
+				[
+					"f-vp",
+					"f-dept",
+					"f-estatus",
+					"f-nivel",
+					"f-tipo",
+					"f-prio",
+					"f-loc",
+				].forEach((id) => (document.getElementById(id).value = ""));
+				refresh();
+			}
+
+			function refresh() {
+				const data = getFiltered();
+				updateKPIs(data);
+				updateBarChart(data);
+				updateDonutChart(data);
+				updateTable(data);
+			}
+
+			populateFilters();
+			[
+				"f-vp",
+				"f-dept",
+				"f-estatus",
+				"f-nivel",
+				"f-tipo",
+				"f-prio",
+				"f-loc",
+			].forEach((id) =>
+				document.getElementById(id).addEventListener("change", refresh)
+			);
+			refresh();
+		</script>
+	</body>
+</html>
