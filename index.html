@@ -8,14 +8,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
-            --navy: #0b3d6b; --navy-mid: #114f8a; --navy-light: #1a6db5;
-            --accent: #00c6a7; --accent2: #ffb347; --danger: #ff6b6b;
-            --sky: #5eaaf7; --purple: #9b7fea;
-            --bg: #071e38; --surface: #0e2a47; --surface2: #132f52;
-            --border: rgba(255,255,255,0.09);
-            --text: #e8f0fa; --muted: rgba(232,240,250,0.5);
-            --font: "DM Sans", sans-serif; --mono: "DM Mono", monospace;
-            --radius: 12px; --radius-sm: 7px;
+            --accent:#00c6a7;--accent2:#ffb347;--danger:#ff6b6b;
+            --sky:#5eaaf7;--purple:#9b7fea;
+            --bg:#071e38;--surface:#0e2a47;--surface2:#132f52;
+            --border:rgba(255,255,255,0.09);
+            --text:#e8f0fa;--muted:rgba(232,240,250,0.5);
+            --font:"DM Sans",sans-serif;--mono:"DM Mono",monospace;
+            --radius:12px;--radius-sm:7px;
         }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
@@ -26,6 +25,8 @@
         .logo-area h1 span{color:var(--accent)}
         .logo-area p{font-size:13px;color:var(--muted);margin-top:4px}
         .date-badge{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(0,198,167,0.1);border:1px solid rgba(0,198,167,0.25);padding:6px 12px;border-radius:20px;white-space:nowrap}
+
+        /* KPIs */
         .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
         .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
         .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.3)}
@@ -39,20 +40,55 @@
         .kpi-card.c-total .kpi-val{color:var(--sky)}.kpi-card.c-vac .kpi-val{color:var(--purple)}
         .kpi-card.c-entrev .kpi-val{color:var(--accent2)}.kpi-card.c-oferta .kpi-val{color:var(--sky)}
         .kpi-card.c-alta .kpi-val{color:var(--danger)}
-        .filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:20px}
-        .filter-bar-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);white-space:nowrap}
-        .filter-group{display:flex;align-items:center;gap:6px}
-        .filter-group label{font-size:11px;color:var(--muted);white-space:nowrap}
-        .filter-group select{font-family:var(--font);font-size:12px;background:var(--surface2);color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:6px 10px;cursor:pointer;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(232,240,250,0.4)'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
-        .filter-group select:focus{border-color:var(--accent)}
-        .filter-group select option{background:#0e2a47}
-        .btn-reset{font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);padding:6px 14px;cursor:pointer;transition:all .2s;white-space:nowrap}
+
+        /* FILTER BAR */
+        .filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px;margin-bottom:20px}
+        .filter-bar-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);white-space:nowrap;padding-top:7px}
+
+        /* MULTI-SELECT DROPDOWN */
+        .ms-wrap{position:relative}
+        .ms-btn{display:flex;align-items:center;gap:6px;font-family:var(--font);font-size:12px;background:var(--surface2);color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:6px 10px 6px 10px;cursor:pointer;white-space:nowrap;user-select:none;transition:border-color .2s;min-width:110px}
+        .ms-btn:hover,.ms-btn.open{border-color:var(--accent)}
+        .ms-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:2px}
+        .ms-val{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .ms-badge{background:var(--accent);color:#071e38;border-radius:10px;font-size:9px;font-weight:700;padding:1px 5px;flex-shrink:0}
+        .ms-arrow{font-size:9px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+        .ms-btn.open .ms-arrow{transform:rotate(180deg)}
+
+        .ms-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:200px;background:#0d2540;border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-sm);z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);overflow:hidden;display:none}
+        .ms-dropdown.open{display:block}
+        .ms-search{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-family:var(--font);font-size:12px;color:var(--text);outline:none}
+        .ms-search::placeholder{color:var(--muted)}
+        .ms-options{max-height:200px;overflow-y:auto}
+        .ms-option{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;transition:background .12s}
+        .ms-option:hover{background:rgba(255,255,255,0.06)}
+        .ms-option input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;flex-shrink:0;cursor:pointer}
+        .ms-option label{cursor:pointer;flex:1}
+        .ms-footer{display:flex;gap:6px;padding:8px 10px;border-top:1px solid rgba(255,255,255,0.07)}
+        .ms-footer button{flex:1;font-family:var(--font);font-size:11px;font-weight:600;padding:5px 8px;border-radius:var(--radius-sm);cursor:pointer;border:none;transition:background .15s}
+        .ms-sel-all{background:rgba(0,198,167,0.15);color:var(--accent)}
+        .ms-sel-all:hover{background:rgba(0,198,167,0.25)}
+        .ms-clr-all{background:rgba(255,255,255,0.06);color:var(--muted)}
+        .ms-clr-all:hover{background:rgba(255,107,107,0.15);color:var(--danger)}
+
+        .btn-reset{font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);padding:6px 14px;cursor:pointer;transition:all .2s;white-space:nowrap;margin-top:1px}
         .btn-reset:hover{color:var(--danger);border-color:var(--danger)}
+
+        /* ACTIVE FILTERS CHIPS */
+        .active-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+        .active-filters:empty{display:none}
+        .chip{display:inline-flex;align-items:center;gap:5px;background:rgba(0,198,167,0.12);border:1px solid rgba(0,198,167,0.25);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--accent)}
+        .chip-x{cursor:pointer;font-size:13px;line-height:1;opacity:.7}
+        .chip-x:hover{opacity:1}
+
+        /* CHARTS */
         .charts-row{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:20px}
         .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px}
         .chart-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:16px;text-transform:uppercase;letter-spacing:.06em}
         .chart-title span{color:var(--accent);font-weight:400;font-size:11px;margin-left:6px;text-transform:none;letter-spacing:0}
         .chart-wrap{position:relative;height:250px}
+
+        /* TABLE */
         .table-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
         .table-header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
         .table-header-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
@@ -91,7 +127,7 @@
         .loading-text{font-size:13px;color:var(--muted)}
         .error-banner{background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);border-radius:var(--radius);padding:14px 20px;color:#ff9f9f;font-size:13px;margin-bottom:20px;display:none;align-items:center;gap:10px}
         .error-banner.show{display:flex}
-        .btn-retry{font-family:var(--font);font-size:12px;font-weight:600;color:var(--danger);background:transparent;border:1px solid var(--danger);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;margin-left:auto;white-space:nowrap}
+        .btn-retry{font-family:var(--font);font-size:12px;font-weight:600;color:var(--danger);background:transparent;border:1px solid var(--danger);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;margin-left:auto}
         .btn-retry:hover{background:rgba(255,107,107,0.1)}
         @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -134,7 +170,6 @@
 </head>
 <body>
 
-<!-- LOADING -->
 <div class="loading-overlay" id="loading-overlay">
     <div class="spinner"></div>
     <div class="loading-text">Cargando vacantes desde Google Sheets…</div>
@@ -150,9 +185,8 @@
         <div class="date-badge" id="date-badge">Cargando…</div>
     </header>
 
-    <!-- ERROR BANNER -->
     <div class="error-banner" id="error-banner">
-        <span>⚠️ No se pudo conectar con Google Sheets. Mostrando últimos datos cargados.</span>
+        <span>⚠️ No se pudo conectar con Google Sheets.</span>
         <button class="btn-retry" onclick="loadData()">↺ Reintentar</button>
     </div>
 
@@ -164,17 +198,15 @@
         <div class="kpi-card c-alta"><div class="kpi-label">Prioridad alta</div><div class="kpi-val" id="k-alta">—</div><div class="kpi-sub">requieren atención urgente</div></div>
     </div>
 
-    <div class="filter-bar">
+    <!-- FILTER BAR -->
+    <div class="filter-bar" id="filter-bar">
         <span class="filter-bar-label">Filtros</span>
-        <div class="filter-group"><label>Vicepresidencia</label><select id="f-vp"><option value="">Todas</option></select></div>
-        <div class="filter-group"><label>Departamento</label><select id="f-dept"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label>Estatus</label><select id="f-estatus"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label>Nivel de cargo</label><select id="f-nivel"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label>Tipo de vacante</label><select id="f-tipo"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label>Prioridad</label><select id="f-prio"><option value="">Todas</option></select></div>
-        <div class="filter-group"><label>Localidad</label><select id="f-loc"><option value="">Todas</option></select></div>
-        <button class="btn-reset" onclick="resetFilters()">✕ Limpiar</button>
+        <!-- Los dropdowns se generan dinámicamente -->
+        <button class="btn-reset" onclick="resetFilters()">✕ Limpiar todo</button>
     </div>
+
+    <!-- CHIPS DE FILTROS ACTIVOS -->
+    <div class="active-filters" id="active-filters"></div>
 
     <div class="charts-row">
         <div class="chart-card">
@@ -196,7 +228,7 @@
             <div style="font-size:11px;color:var(--muted)">Haz clic en una fila para ver candidatos</div>
         </div>
         <div class="table-wrap">
-            <table id="main-table">
+            <table>
                 <thead>
                     <tr>
                         <th data-col="req" onclick="sortBy('req')">#REQ <i class="sort-icon">↕</i></th>
@@ -234,235 +266,302 @@
 </div>
 
 <script>
-// ── CONFIGURACIÓN ──────────────────────────────────────────────
+// ── CONFIG ─────────────────────────────────────────────────────
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJWulrR0cxHIz8X9LcHzYBa1kV3mc2eLoVTKXM0f4qqpqXDL_2_uNtS6aU-yTTfFgQrA/exec";
 
-// Índices de columnas en el Sheet (base 0)
-// #REQU=0, PRIORIDAD=1, FECHA=2, RESPONSABLE=3, UNIDAD=4,
-// VP=5, DIR=6, LOCALIDAD=7, CONTACTO=8, ESTATUS=9,
-// MOTIVO=10, CARGO=11, NIVEL=12, CONTRATO=13, CANDIDATOS=14, COMENTARIOS=21
-const COL = {
-  req:0, prio:1, fecha:2, responsable:3, vp:5,
-  dir:6, loc:7, contacto:8, estatus:9, tipo:10,
-  cargo:11, nivel:12, contrato:13, candidatos:14, comentario:21
-};
+const COL = {req:0,prio:1,fecha:2,responsable:3,vp:5,dir:6,loc:7,contacto:8,estatus:9,tipo:10,cargo:11,nivel:12,contrato:13,candidatos:14,comentario:21};
 
 const STATUS = {
-  "EN PROCESO ENTREVISTA": {label:"En entrevista", cls:"b-entrevista", color:"#FFB347"},
-  "EN PROCESO DE INGRESO": {label:"En ingreso",    cls:"b-ingreso",    color:"#00C6A7"},
-  "EN PROCESO DE OFERTA":  {label:"En oferta",     cls:"b-oferta",     color:"#5EAAF7"},
-  "VACANTE":               {label:"Vacante",       cls:"b-vacante",    color:"#9B7FEA"},
+  "EN PROCESO ENTREVISTA":{label:"En entrevista",cls:"b-entrevista",color:"#FFB347"},
+  "EN PROCESO DE INGRESO":{label:"En ingreso",   cls:"b-ingreso",   color:"#00C6A7"},
+  "EN PROCESO DE OFERTA": {label:"En oferta",    cls:"b-oferta",    color:"#5EAAF7"},
+  "VACANTE":              {label:"Vacante",      cls:"b-vacante",   color:"#9B7FEA"},
 };
+
+// Definición de filtros: id, label, campo del DATA
+const FILTER_DEFS = [
+  {id:"f-vp",    label:"Vicepresidencia", field:"vp"},
+  {id:"f-dept",  label:"Departamento",    field:"dir"},
+  {id:"f-estatus",label:"Estatus",        field:"estatus", statusMap:true},
+  {id:"f-nivel", label:"Nivel",           field:"nivel"},
+  {id:"f-tipo",  label:"Tipo",            field:"tipo"},
+  {id:"f-prio",  label:"Prioridad",       field:"prio",    fixed:["ALTA","MEDIA"]},
+  {id:"f-loc",   label:"Localidad",       field:"loc"},
+];
 
 let DATA = [];
 let sortCol = "vp", sortAsc = true, barChart = null, donutChart = null;
+// Estado de filtros: { filterId: Set(valores seleccionados) }
+const filterState = {};
+FILTER_DEFS.forEach(f => filterState[f.id] = new Set());
 
-// ── CARGA DE DATOS DESDE APPS SCRIPT ──────────────────────────
+// ── CARGA DE DATOS ─────────────────────────────────────────────
 async function loadData() {
   document.getElementById("loading-overlay").classList.remove("hidden");
   document.getElementById("error-banner").classList.remove("show");
-
   try {
     const res = await fetch(SCRIPT_URL);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const raw = await res.json();
-
-    // La primera fila son los headers, la saltamos
     const rows = raw.slice(1).filter(r => r[COL.req] && String(r[COL.req]).startsWith("RQ") && r[COL.cargo]);
-
     DATA = rows.map(r => ({
-      req:         String(r[COL.req]   || "").trim(),
-      prio:        String(r[COL.prio]  || "").trim().toUpperCase(),
-      fecha:       String(r[COL.fecha] || "").trim(),
-      responsable: String(r[COL.responsable] || "").trim(),
-      vp:          String(r[COL.vp]    || "").trim(),
-      dir:         String(r[COL.dir]   || "").trim(),
-      loc:         String(r[COL.loc]   || "").trim(),
-      contacto:    String(r[COL.contacto] || "").trim(),
-      estatus:     String(r[COL.estatus]  || "").trim().toUpperCase().replace(/\s+/g," "),
-      tipo:        String(r[COL.tipo]  || "").trim(),
-      cargo:       String(r[COL.cargo] || "").trim(),
-      nivel:       String(r[COL.nivel] || "").trim(),
-      contrato:    String(r[COL.contrato] || "").trim(),
-      comentario:  String(r[COL.comentario] || "").trim(),
-      // Candidatos: parseamos el texto libre de la columna 14
-      candidatos:  parseCandidatos(String(r[COL.candidatos] || "")),
+      req:         String(r[COL.req]||"").trim(),
+      prio:        String(r[COL.prio]||"").trim().toUpperCase(),
+      fecha:       String(r[COL.fecha]||"").trim(),
+      responsable: String(r[COL.responsable]||"").trim(),
+      vp:          String(r[COL.vp]||"").trim(),
+      dir:         String(r[COL.dir]||"").trim(),
+      loc:         String(r[COL.loc]||"").trim(),
+      contacto:    String(r[COL.contacto]||"").trim(),
+      estatus:     String(r[COL.estatus]||"").trim().toUpperCase().replace(/\s+/g," "),
+      tipo:        String(r[COL.tipo]||"").trim(),
+      cargo:       String(r[COL.cargo]||"").trim(),
+      nivel:       String(r[COL.nivel]||"").trim(),
+      contrato:    String(r[COL.contrato]||"").trim(),
+      comentario:  String(r[COL.comentario]||"").trim(),
+      candidatos:  parseCandidatos(String(r[COL.candidatos]||"")),
     }));
-
-    // Actualizar fecha en header
     const now = new Date();
     document.getElementById("date-badge").textContent =
-      now.toLocaleDateString("es-VE", {month:"long", year:"numeric"})
-         .replace(/^\w/, c => c.toUpperCase());
-
-    initFilters();
+      now.toLocaleDateString("es-VE",{month:"long",year:"numeric"}).replace(/^\w/,c=>c.toUpperCase());
+    buildFilterDropdowns();
     refresh();
-
   } catch(e) {
     console.error("Error cargando datos:", e);
     document.getElementById("error-banner").classList.add("show");
-    if (DATA.length) refresh(); // Usar datos anteriores si los hay
+    if (DATA.length) refresh();
   } finally {
     document.getElementById("loading-overlay").classList.add("hidden");
   }
 }
 
-// Parsea el texto libre de candidatos en objetos estructurados
 function parseCandidatos(texto) {
-  if (!texto || texto.trim() === "") return [];
-  // Separa por | o por salto de línea
-  const partes = texto.split(/\||[\n\r]+/).map(s => s.trim()).filter(Boolean);
-  return partes.map(p => {
-    // Detectar fecha tipo "25 de Mayo", "10 de Junio", etc.
+  if (!texto.trim()) return [];
+  return texto.split(/\||[\n\r]+/).map(s=>s.trim()).filter(Boolean).map(p => {
     const fechaMatch = p.match(/\b\d{1,2}\s+de\s+\w+(?:\s*\([^)]*\))?/i);
     const fecha = fechaMatch ? fechaMatch[0] : "";
-    // Detectar patrones de estatus al inicio
-    const statusPatterns = [
-      /^en proceso de ingreso[:\s]*/i, /^en proceso de oferta[:\s]*/i,
-      /^en proceso entrevista[:\s]*/i, /^en proceso de pruebas[:\s]*/i,
-      /^en proceso[:\s]*/i, /^en entrevista[:\s]*/i,
-      /^en busqueda[:\s]*/i, /^ingreso[:\s]*/i, /^pendiente[:\s]*/i,
-    ];
-    let statusLabel = "En proceso";
-    let nombre = p;
-    for (const pat of statusPatterns) {
-      if (pat.test(p)) { statusLabel = p.match(pat)[0].replace(/[:\s]*$/, ""); break; }
-    }
-    // El nombre suele ser la parte que no es el status ni la fecha
-    nombre = p.replace(/^(en proceso de ingreso|en proceso de oferta|en proceso entrevista|en proceso de pruebas|en proceso|en entrevista|ingreso|pendiente)[:\s]*/i, "").trim();
-    if (fecha) nombre = nombre.replace(fechaMatch[0], "").replace(/[·\-–|]/g, "").trim();
-    // Si después de limpiar queda vacío, usamos el texto original como nombre
+    let nombre = p.replace(/^(en proceso de ingreso|en proceso de oferta|en proceso entrevista|en proceso de pruebas|en proceso|en entrevista|ingreso|pendiente)[:\s]*/i,"").trim();
+    if (fecha) nombre = nombre.replace(fechaMatch[0],"").replace(/[·\-–|]/g,"").trim();
     if (!nombre) nombre = p;
-    return { nombre, statusLabel: statusLabel.trim(), fecha, nota: "" };
-  }).filter(c => c.nombre.length > 1);
+    return {nombre, statusLabel:"En proceso", fecha, nota:""};
+  }).filter(c=>c.nombre.length>1);
 }
 
-// ── FILTROS ────────────────────────────────────────────────────
-const unique = (arr, k) => [...new Set(arr.map(d => d[k]).filter(Boolean))].sort();
-const group  = (arr, k) => arr.reduce((m, d) => { (m[d[k]] = m[d[k]] || []).push(d); return m; }, {});
+// ── MULTI-SELECT DROPDOWNS ──────────────────────────────────────
+function buildFilterDropdowns() {
+  const bar = document.getElementById("filter-bar");
+  // Eliminar dropdowns anteriores (dejar solo el label y el botón reset)
+  bar.querySelectorAll(".ms-wrap").forEach(el => el.remove());
+  const resetBtn = bar.querySelector(".btn-reset");
 
-function initFilters() {
-  const resetSelect = id => {
-    const s = document.getElementById(id);
-    const val = s.value;
-    s.innerHTML = "";
-    return { s, val };
-  };
-  const addOpts = (s, vals, defaultLabel) => {
-    const def = document.createElement("option"); def.value = ""; def.textContent = defaultLabel; s.appendChild(def);
-    vals.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; s.appendChild(o); });
-  };
+  FILTER_DEFS.forEach(def => {
+    let options;
+    if (def.fixed) {
+      options = def.fixed;
+    } else if (def.statusMap) {
+      options = Object.entries(STATUS).map(([v,cfg]) => ({value:v, label:cfg.label}));
+    } else {
+      options = [...new Set(DATA.map(d=>d[def.field]).filter(Boolean))].sort()
+                .map(v => ({value:v, label:v}));
+    }
 
-  let {s, val} = resetSelect("f-vp");   addOpts(s, unique(DATA,"vp"),  "Todas");  s.value = val;
-  ({s, val} = resetSelect("f-dept"));   addOpts(s, unique(DATA,"dir"), "Todos");  s.value = val;
-  ({s, val} = resetSelect("f-nivel"));  addOpts(s, unique(DATA,"nivel"),"Todos"); s.value = val;
-  ({s, val} = resetSelect("f-tipo"));   addOpts(s, unique(DATA,"tipo"), "Todos"); s.value = val;
-  ({s, val} = resetSelect("f-loc"));    addOpts(s, unique(DATA,"loc"),  "Todas"); s.value = val;
-  ({s, val} = resetSelect("f-prio"));   addOpts(s, ["ALTA","MEDIA"],    "Todas"); s.value = val;
+    const wrap = document.createElement("div");
+    wrap.className = "ms-wrap";
+    wrap.id = "wrap-" + def.id;
+    wrap.innerHTML = buildDropdownHTML(def, options);
+    bar.insertBefore(wrap, resetBtn);
 
-  const fEst = resetSelect("f-estatus");
-  addOpts(fEst.s, [], "Todos");
-  Object.entries(STATUS).forEach(([v, cfg]) => {
-    const o = document.createElement("option"); o.value = v; o.textContent = cfg.label; fEst.s.appendChild(o);
+    // Eventos
+    const btn = wrap.querySelector(".ms-btn");
+    const dd  = wrap.querySelector(".ms-dropdown");
+    const search = wrap.querySelector(".ms-search");
+
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const isOpen = dd.classList.contains("open");
+      closeAllDropdowns();
+      if (!isOpen) { dd.classList.add("open"); btn.classList.add("open"); if(search) search.focus(); }
+    });
+
+    if (search) {
+      search.addEventListener("input", () => {
+        const q = search.value.toLowerCase();
+        wrap.querySelectorAll(".ms-option").forEach(opt => {
+          opt.style.display = opt.querySelector("label").textContent.toLowerCase().includes(q) ? "" : "none";
+        });
+      });
+    }
+
+    wrap.querySelectorAll(".ms-option input").forEach(cb => {
+      cb.addEventListener("change", () => {
+        if (cb.checked) filterState[def.id].add(cb.value);
+        else filterState[def.id].delete(cb.value);
+        updateDropdownBtn(def);
+        refresh();
+      });
+    });
+
+    wrap.querySelector(".ms-sel-all").addEventListener("click", () => {
+      wrap.querySelectorAll(".ms-option input").forEach(cb => { cb.checked=true; filterState[def.id].add(cb.value); });
+      updateDropdownBtn(def); refresh();
+    });
+    wrap.querySelector(".ms-clr-all").addEventListener("click", () => {
+      wrap.querySelectorAll(".ms-option input").forEach(cb => { cb.checked=false; });
+      filterState[def.id].clear();
+      updateDropdownBtn(def); refresh();
+    });
   });
-  fEst.s.value = fEst.val;
 }
 
+function buildDropdownHTML(def, options) {
+  const optsHTML = options.map(o => {
+    const val = typeof o === "string" ? o : o.value;
+    const lbl = typeof o === "string" ? o : o.label;
+    return `<div class="ms-option"><input type="checkbox" id="${def.id}-${val.replace(/\s/g,'_')}" value="${val}"><label for="${def.id}-${val.replace(/\s/g,'_')}">${lbl}</label></div>`;
+  }).join("");
+  const showSearch = options.length > 6;
+  return `
+    <div class="ms-btn" title="${def.label}">
+      <span class="ms-label">${def.label}</span>
+      <span class="ms-val">Todos</span>
+      <span class="ms-badge" style="display:none">0</span>
+      <span class="ms-arrow">▼</span>
+    </div>
+    <div class="ms-dropdown">
+      ${showSearch ? `<input class="ms-search" placeholder="Buscar…" type="text">` : ""}
+      <div class="ms-options">${optsHTML}</div>
+      <div class="ms-footer">
+        <button class="ms-sel-all">Seleccionar todo</button>
+        <button class="ms-clr-all">Limpiar</button>
+      </div>
+    </div>`;
+}
+
+function updateDropdownBtn(def) {
+  const wrap = document.getElementById("wrap-" + def.id);
+  if (!wrap) return;
+  const sel = filterState[def.id];
+  const btn  = wrap.querySelector(".ms-btn");
+  const valEl = btn.querySelector(".ms-val");
+  const badge = btn.querySelector(".ms-badge");
+  if (sel.size === 0) {
+    valEl.textContent = "Todos";
+    badge.style.display = "none";
+  } else {
+    const labels = [...sel].map(v => {
+      if (def.statusMap) return STATUS[v]?.label || v;
+      return v;
+    });
+    valEl.textContent = labels.length === 1 ? labels[0] : `${labels.length} selec.`;
+    badge.textContent = sel.size;
+    badge.style.display = "";
+  }
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll(".ms-dropdown.open").forEach(d => d.classList.remove("open"));
+  document.querySelectorAll(".ms-btn.open").forEach(b => b.classList.remove("open"));
+}
+document.addEventListener("click", closeAllDropdowns);
+
+// ── FILTRADO ───────────────────────────────────────────────────
 function getFiltered() {
-  const fVP   = document.getElementById("f-vp").value;
-  const fDept = document.getElementById("f-dept").value;
-  const fEst  = document.getElementById("f-estatus").value;
-  const fNiv  = document.getElementById("f-nivel").value;
-  const fTipo = document.getElementById("f-tipo").value;
-  const fPrio = document.getElementById("f-prio").value;
-  const fLoc  = document.getElementById("f-loc").value;
   return DATA.filter(r =>
-    (!fVP   || r.vp      === fVP)   &&
-    (!fDept || r.dir     === fDept) &&
-    (!fEst  || r.estatus === fEst)  &&
-    (!fNiv  || r.nivel   === fNiv)  &&
-    (!fTipo || r.tipo    === fTipo) &&
-    (!fPrio || r.prio    === fPrio) &&
-    (!fLoc  || r.loc     === fLoc)
+    FILTER_DEFS.every(def => {
+      const sel = filterState[def.id];
+      if (sel.size === 0) return true;
+      return sel.has(r[def.field]);
+    })
   );
+}
+
+// ── CHIPS FILTROS ACTIVOS ──────────────────────────────────────
+function renderChips() {
+  const container = document.getElementById("active-filters");
+  container.innerHTML = "";
+  FILTER_DEFS.forEach(def => {
+    filterState[def.id].forEach(val => {
+      const label = def.statusMap ? (STATUS[val]?.label || val) : val;
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.innerHTML = `<span>${def.label}: <b>${label}</b></span><span class="chip-x" title="Quitar">×</span>`;
+      chip.querySelector(".chip-x").addEventListener("click", () => {
+        filterState[def.id].delete(val);
+        const cb = document.querySelector(`#wrap-${def.id} input[value="${val}"]`);
+        if (cb) cb.checked = false;
+        updateDropdownBtn(def);
+        refresh();
+      });
+      container.appendChild(chip);
+    });
+  });
 }
 
 // ── KPIs ───────────────────────────────────────────────────────
 function updateKPIs(data) {
   document.getElementById("k-total").textContent   = data.length;
-  document.getElementById("k-vacante").textContent = data.filter(d => d.estatus === "VACANTE").length;
-  document.getElementById("k-entrev").textContent  = data.filter(d => d.estatus === "EN PROCESO ENTREVISTA").length;
-  document.getElementById("k-oferta").textContent  = data.filter(d => d.estatus === "EN PROCESO DE OFERTA" || d.estatus === "EN PROCESO DE INGRESO").length;
-  document.getElementById("k-alta").textContent    = data.filter(d => d.prio === "ALTA").length;
+  document.getElementById("k-vacante").textContent = data.filter(d=>d.estatus==="VACANTE").length;
+  document.getElementById("k-entrev").textContent  = data.filter(d=>d.estatus==="EN PROCESO ENTREVISTA").length;
+  document.getElementById("k-oferta").textContent  = data.filter(d=>d.estatus==="EN PROCESO DE OFERTA"||d.estatus==="EN PROCESO DE INGRESO").length;
+  document.getElementById("k-alta").textContent    = data.filter(d=>d.prio==="ALTA").length;
 }
 
 // ── GRÁFICAS ───────────────────────────────────────────────────
-Chart.defaults.color = "rgba(232,240,250,0.7)";
-Chart.defaults.font  = {family:"'DM Sans',sans-serif", size:11};
+Chart.defaults.color="rgba(232,240,250,0.7)";
+Chart.defaults.font={family:"'DM Sans',sans-serif",size:11};
+const group=(arr,k)=>arr.reduce((m,d)=>{(m[d[k]]=m[d[k]]||[]).push(d);return m},{});
 
 function updateBarChart(data) {
-  const byVP = group(data, "vp");
-  const vps  = Object.keys(byVP).sort((a,b) => byVP[b].length - byVP[a].length);
-  const datasets = Object.keys(STATUS).map(s => ({
-    label: STATUS[s].label,
-    data:  vps.map(vp => (byVP[vp]||[]).filter(r => r.estatus === s).length),
-    backgroundColor: STATUS[s].color + "CC",
-    borderColor: STATUS[s].color,
-    borderWidth: 0, borderRadius: 4, borderSkipped: false,
+  const byVP=group(data,"vp");
+  const vps=Object.keys(byVP).sort((a,b)=>byVP[b].length-byVP[a].length);
+  const datasets=Object.keys(STATUS).map(s=>({
+    label:STATUS[s].label, data:vps.map(vp=>(byVP[vp]||[]).filter(r=>r.estatus===s).length),
+    backgroundColor:STATUS[s].color+"CC", borderColor:STATUS[s].color,
+    borderWidth:0, borderRadius:4, borderSkipped:false,
   }));
-  if (barChart) barChart.destroy();
-  barChart = new Chart(document.getElementById("chart-bar"), {
-    type:"bar",
-    data:{labels: vps.map(v => v.length>18 ? v.substring(0,17)+"…" : v), datasets},
+  if(barChart)barChart.destroy();
+  barChart=new Chart(document.getElementById("chart-bar"),{type:"bar",
+    data:{labels:vps.map(v=>v.length>18?v.substring(0,17)+"…":v),datasets},
     options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",
       plugins:{legend:{position:"bottom",labels:{padding:14,boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:"circle"}},
                tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}`}}},
       scales:{x:{stacked:true,grid:{color:"rgba(255,255,255,0.06)"},ticks:{stepSize:1}},
-              y:{stacked:true,grid:{display:false}}}}
-  });
+              y:{stacked:true,grid:{display:false}}}}});
 }
 
 function updateDonutChart(data) {
-  const statuses = Object.keys(STATUS);
-  const counts = statuses.map(s => data.filter(d => d.estatus === s).length);
-  if (donutChart) donutChart.destroy();
-  donutChart = new Chart(document.getElementById("chart-donut"), {
-    type:"doughnut",
-    data:{labels: statuses.map(s => STATUS[s].label),
-          datasets:[{data:counts, backgroundColor:statuses.map(s=>STATUS[s].color+"CC"),
-                     borderColor:statuses.map(s=>STATUS[s].color), borderWidth:1.5, hoverOffset:6}]},
+  const statuses=Object.keys(STATUS);
+  const counts=statuses.map(s=>data.filter(d=>d.estatus===s).length);
+  if(donutChart)donutChart.destroy();
+  donutChart=new Chart(document.getElementById("chart-donut"),{type:"doughnut",
+    data:{labels:statuses.map(s=>STATUS[s].label),
+          datasets:[{data:counts,backgroundColor:statuses.map(s=>STATUS[s].color+"CC"),
+                     borderColor:statuses.map(s=>STATUS[s].color),borderWidth:1.5,hoverOffset:6}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:"66%",
       plugins:{legend:{position:"bottom",labels:{padding:14,boxWidth:10,usePointStyle:true,pointStyle:"circle"}},
-               tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${Math.round(c.raw/data.length*100)||0}%)`}}}}
-  });
+               tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${Math.round(c.raw/data.length*100)||0}%)`}}}}});
 }
 
 // ── TABLA ──────────────────────────────────────────────────────
-function badge(cls, text) { return `<span class="badge ${cls}"><span class="badge-dot"></span>${text}</span>`; }
-function statusBadge(s) { const cfg=STATUS[s]; return cfg ? badge(cfg.cls,cfg.label) : `<span class="badge b-nivel">${s||"—"}</span>`; }
-function candidateSummary(row) {
-  const n = row.candidatos.filter(c=>c.nombre).length;
-  return n ? `<span class="has-candidates">👤 ${n} candidato${n>1?"s":""}</span>` : `<span class="no-candidates">—</span>`;
-}
+function badge(cls,text){return`<span class="badge ${cls}"><span class="badge-dot"></span>${text}</span>`;}
+function statusBadge(s){const cfg=STATUS[s];return cfg?badge(cfg.cls,cfg.label):`<span class="badge b-nivel">${s||"—"}</span>`;}
+function candidateSummary(row){const n=row.candidatos.filter(c=>c.nombre).length;return n?`<span class="has-candidates">👤 ${n} candidato${n>1?"s":""}</span>`:`<span class="no-candidates">—</span>`;}
 
 function updateTable(data) {
-  const sorted = [...data].sort((a,b) => {
-    const va=(a[sortCol]||"").toLowerCase(), vb=(b[sortCol]||"").toLowerCase();
-    return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+  const sorted=[...data].sort((a,b)=>{
+    const va=(a[sortCol]||"").toLowerCase(),vb=(b[sortCol]||"").toLowerCase();
+    return sortAsc?va.localeCompare(vb):vb.localeCompare(va);
   });
-  document.getElementById("table-badge").textContent = `· ${data.length} resultado${data.length!==1?"s":""}`;
-  document.getElementById("table-count").textContent = `Mostrando ${data.length} de ${DATA.length} vacantes activas`;
-  document.querySelectorAll("thead th").forEach(th => {
-    th.classList.toggle("sorted", th.dataset.col === sortCol);
-    const icon = th.querySelector(".sort-icon");
-    if (icon) icon.textContent = th.dataset.col===sortCol ? (sortAsc?"↑":"↓") : "↕";
+  document.getElementById("table-badge").textContent=`· ${data.length} resultado${data.length!==1?"s":""}`;
+  document.getElementById("table-count").textContent=`Mostrando ${data.length} de ${DATA.length} vacantes activas`;
+  document.querySelectorAll("thead th").forEach(th=>{
+    th.classList.toggle("sorted",th.dataset.col===sortCol);
+    const icon=th.querySelector(".sort-icon");
+    if(icon)icon.textContent=th.dataset.col===sortCol?(sortAsc?"↑":"↓"):"↕";
   });
-  const tbody = document.getElementById("tbody");
-  if (!sorted.length) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">No hay vacantes que coincidan con los filtros.</div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = sorted.map(d => `
+  const tbody=document.getElementById("tbody");
+  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state">No hay vacantes que coincidan con los filtros.</div></td></tr>`;return;}
+  tbody.innerHTML=sorted.map(d=>`
     <tr onclick="openDrawer('${d.req}')">
       <td class="td-req">${d.req}</td>
       <td class="td-cargo">${d.cargo}</td>
@@ -479,65 +578,56 @@ function updateTable(data) {
 
 // ── DRAWER ─────────────────────────────────────────────────────
 function openDrawer(req) {
-  const row = DATA.find(d => d.req === req);
-  if (!row) return;
-  document.getElementById("d-req").textContent   = row.req;
-  document.getElementById("d-cargo").textContent = row.cargo;
-  document.getElementById("d-vp").textContent    = `${row.vp} · ${row.dir} · ${row.loc}`;
-  const cfg = STATUS[row.estatus];
-  document.getElementById("d-badges").innerHTML  =
-    `${badge(cfg?cfg.cls:"b-nivel", cfg?cfg.label:row.estatus)} ${badge(row.prio==="ALTA"?"b-alta":"b-media",row.prio)} ${badge("b-tipo",row.tipo||"—")}`;
-
-  const cands = row.candidatos.filter(c => c.nombre);
-  const dCands = document.getElementById("d-candidates");
-  if (!cands.length) {
-    dCands.innerHTML = `<div class="no-cand-msg"><div style="font-size:24px;margin-bottom:8px">🔍</div>Sin candidatos registrados aún</div>`;
-  } else {
-    dCands.innerHTML = cands.map(c => `
-      <div class="candidate-card">
-        <div class="candidate-name">${c.nombre}</div>
-        <div class="candidate-status">
-          <span style="width:7px;height:7px;border-radius:50%;background:${cfg?cfg.color:"#888"};display:inline-block;flex-shrink:0"></span>
-          ${c.statusLabel}
-        </div>
-        ${c.fecha ? `<div class="candidate-date">📅 ${c.fecha}</div>` : ""}
-        ${c.nota  ? `<div class="candidate-note">${c.nota}</div>` : ""}
-      </div>`).join("");
-  }
-
-  document.getElementById("d-meta").innerHTML = `
+  const row=DATA.find(d=>d.req===req);if(!row)return;
+  document.getElementById("d-req").textContent=row.req;
+  document.getElementById("d-cargo").textContent=row.cargo;
+  document.getElementById("d-vp").textContent=`${row.vp} · ${row.dir} · ${row.loc}`;
+  const cfg=STATUS[row.estatus];
+  document.getElementById("d-badges").innerHTML=`${badge(cfg?cfg.cls:"b-nivel",cfg?cfg.label:row.estatus)} ${badge(row.prio==="ALTA"?"b-alta":"b-media",row.prio)} ${badge("b-tipo",row.tipo||"—")}`;
+  const cands=row.candidatos.filter(c=>c.nombre);
+  const dCands=document.getElementById("d-candidates");
+  if(!cands.length){dCands.innerHTML=`<div class="no-cand-msg"><div style="font-size:24px;margin-bottom:8px">🔍</div>Sin candidatos registrados aún</div>`;}
+  else{dCands.innerHTML=cands.map(c=>`
+    <div class="candidate-card">
+      <div class="candidate-name">${c.nombre}</div>
+      <div class="candidate-status"><span style="width:7px;height:7px;border-radius:50%;background:${cfg?cfg.color:"#888"};display:inline-block;flex-shrink:0"></span>${c.statusLabel}</div>
+      ${c.fecha?`<div class="candidate-date">📅 ${c.fecha}</div>`:""}
+      ${c.nota?`<div class="candidate-note">${c.nota}</div>`:""}
+    </div>`).join("");}
+  document.getElementById("d-meta").innerHTML=`
     <div class="drawer-section-title" style="margin-bottom:10px">Detalle de la vacante</div>
     <div class="meta-row"><span class="meta-key">Fecha requerimiento</span><span class="meta-val">${row.fecha}</span></div>
     <div class="meta-row"><span class="meta-key">Responsable</span><span class="meta-val">${row.responsable}</span></div>
     <div class="meta-row"><span class="meta-key">Persona de contacto</span><span class="meta-val">${row.contacto}</span></div>
     <div class="meta-row"><span class="meta-key">Tipo de contrato</span><span class="meta-val">${row.contrato}</span></div>
     <div class="meta-row"><span class="meta-key">Nivel</span><span class="meta-val">${row.nivel}</span></div>
-    ${row.comentario ? `<div class="meta-row" style="align-items:flex-start"><span class="meta-key">Comentarios</span><span class="meta-val" style="color:rgba(232,240,250,0.55);font-style:italic;font-weight:400">${row.comentario}</span></div>` : ""}`;
-
+    ${row.comentario?`<div class="meta-row" style="align-items:flex-start"><span class="meta-key">Comentarios</span><span class="meta-val" style="color:rgba(232,240,250,0.55);font-style:italic;font-weight:400">${row.comentario}</span></div>`:""}`;
   document.getElementById("overlay").classList.add("open");
   document.getElementById("drawer").classList.add("open");
 }
 
-function closeDrawer() {
+function closeDrawer(){
   document.getElementById("overlay").classList.remove("open");
   document.getElementById("drawer").classList.remove("open");
 }
-document.addEventListener("keydown", e => { if(e.key==="Escape") closeDrawer(); });
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
 
-// ── SORT / FILTROS / REFRESH ───────────────────────────────────
-function sortBy(col) { if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=true;} refresh(); }
-function resetFilters() {
-  ["f-vp","f-dept","f-estatus","f-nivel","f-tipo","f-prio","f-loc"].forEach(id => document.getElementById(id).value = "");
+// ── SORT / RESET / REFRESH ─────────────────────────────────────
+function sortBy(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}refresh();}
+
+function resetFilters(){
+  FILTER_DEFS.forEach(def=>{
+    filterState[def.id].clear();
+    document.querySelectorAll(`#wrap-${def.id} input[type=checkbox]`).forEach(cb=>cb.checked=false);
+    updateDropdownBtn(def);
+  });
   refresh();
 }
-function refresh() {
-  const data = getFiltered();
-  updateKPIs(data); updateBarChart(data); updateDonutChart(data); updateTable(data);
-}
 
-["f-vp","f-dept","f-estatus","f-nivel","f-tipo","f-prio","f-loc"].forEach(id =>
-  document.getElementById(id).addEventListener("change", refresh)
-);
+function refresh(){
+  const data=getFiltered();
+  updateKPIs(data);updateBarChart(data);updateDonutChart(data);updateTable(data);renderChips();
+}
 
 // ── INICIO ─────────────────────────────────────────────────────
 loadData();
