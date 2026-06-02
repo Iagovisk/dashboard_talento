@@ -933,7 +933,6 @@
 							border-radius: 20px;
 							padding: 6px 14px;
 							cursor: pointer;
-							transition: all 0.2s;
 							white-space: nowrap;
 						">
 						🔗 Compartir vista
@@ -973,9 +972,6 @@
 							border-radius: 50%;
 							cursor: pointer;
 							font-size: 16px;
-							display: flex;
-							align-items: center;
-							justify-content: center;
 						">
 						✕
 					</button>
@@ -988,9 +984,8 @@
                     🔗 Compartir vista filtrada
                 </div>
                 <div style="font-size: 12px; color: var(--muted); margin-bottom: 16px">
-                    Genera un link con los filtros que tienes aplicados actualmente. Quien lo reciba solo podrá ver, no modificar.
+                    Genera un link con los filtros activos. Quien lo reciba solo podrá ver, no modificar.
                 </div>
-
                 <div id="share-filters-summary" style="
 							display: none;
 							background: rgba(0, 198, 167, 0.07);
@@ -1002,7 +997,6 @@
 							line-height: 1.7;
 							margin-bottom: 16px;
 						"></div>
-
                 <button onclick="generateShareLink()" style="
 							width: 100%;
 							font-family: var(--font);
@@ -1015,11 +1009,9 @@
 							padding: 11px;
 							cursor: pointer;
 							margin-bottom: 16px;
-							transition: opacity 0.2s;
 						">
 						Generar link
 					</button>
-
                 <div id="share-result" style="display: none">
                     <div style="
 								font-size: 11px;
@@ -1057,7 +1049,6 @@
 									padding: 9px 16px;
 									cursor: pointer;
 									white-space: nowrap;
-									transition: all 0.2s;
 								">
 								📋 Copiar
 							</button>
@@ -1199,10 +1190,11 @@
 
     <script>
         /* ============================================================
-           1. CONSTANTES GLOBALES
-           ============================================================ */
+           CONSTANTES
+        ============================================================ */
         var SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxJWulrR0cxHIz8X9LcHzYBa1kV3mc2eLoVTKXM0f4qqpqXDL_2_uNtS6aU-yTTfFgQrA/exec";
+        var SALT = "FTD2026@rrhh";
 
         var COL = {
             req: 0,
@@ -1278,24 +1270,23 @@
         }, ];
 
         /* ============================================================
-   2. ACCESO POR URL (filtros bloqueados)
-   ============================================================ */
-        var SALT = "FTD2026@rrhh";
-
+   ACCESO POR URL
+============================================================ */
         function encodeFilters(state) {
-            // Serializa el filterState a JSON y lo codifica en base64 con salt
             var obj = {};
             FILTER_DEFS.forEach(function(def) {
-                var vals = [...state[def.id]];
+                var vals = Array.from(state[def.id]);
                 if (vals.length) obj[def.id] = vals;
             });
-            return btoa(SALT + "|" + JSON.stringify(obj));
+            return btoa(
+                unescape(encodeURIComponent(SALT + "|" + JSON.stringify(obj)))
+            );
         }
 
         function decodeFilters(token) {
             if (!token) return null;
             try {
-                var decoded = atob(token);
+                var decoded = decodeURIComponent(escape(atob(token)));
                 if (decoded.indexOf(SALT + "|") !== 0) return "INVALID";
                 return JSON.parse(decoded.slice(SALT.length + 1));
             } catch (e) {
@@ -1303,40 +1294,13 @@
             }
         }
 
-        // Mantener encodeVP para compatibilidad con links anteriores
-        function encodeVP(vpName) {
-            return btoa(SALT + "|" + vpName);
-        }
-
         var _rawToken = new URLSearchParams(window.location.search).get("f");
         var LOCKED_FILTERS = _rawToken ? decodeFilters(_rawToken) : null;
         var ACCESS_BLOCKED = LOCKED_FILTERS === "INVALID";
-        // Compatibilidad con links ?v= anteriores
-        var _vpToken = new URLSearchParams(window.location.search).get("v");
-        if (_vpToken && !_rawToken) {
-            var _vp = (function(token) {
-                try {
-                    var d = atob(token);
-                    return d.indexOf(SALT + "|") === 0 ?
-                        d.slice(SALT.length + 1) :
-                        "INVALID";
-                } catch (e) {
-                    return "INVALID";
-                }
-            })(_vpToken);
-            if (_vp === "INVALID") {
-                ACCESS_BLOCKED = true;
-                LOCKED_FILTERS = "INVALID";
-            } else {
-                LOCKED_FILTERS = {
-                    "f-vp": [_vp]
-                };
-            }
-        }
 
         /* ============================================================
-   3. ESTADO
-   ============================================================ */
+   ESTADO
+============================================================ */
         var DATA = [];
         var sortCol = "vp",
             sortAsc = true,
@@ -1348,8 +1312,8 @@
         });
 
         /* ============================================================
-   4. CARGA DE DATOS
-   ============================================================ */
+   CARGA DE DATOS
+============================================================ */
         function loadData() {
             document.getElementById("loading-overlay").classList.remove("hidden");
             document.getElementById("error-banner").classList.remove("show");
@@ -1366,12 +1330,15 @@
                 return;
             }
 
-            fetch(SCRIPT_URL)
+            fetch(SCRIPT_URL, {
+                    redirect: "follow"
+                })
                 .then(function(res) {
-                    if (!res.ok) throw new Error("HTTP " + res.status);
                     return res.json();
                 })
                 .then(function(raw) {
+                    if (!Array.isArray(raw)) throw new Error("Respuesta inesperada");
+
                     var rows = raw.slice(1).filter(function(r) {
                         return (
                             r[COL.req] &&
@@ -1379,6 +1346,7 @@
                             r[COL.cargo]
                         );
                     });
+
                     DATA = rows.map(function(r) {
                         return {
                             req: String(r[COL.req] || "").trim(),
@@ -1404,10 +1372,17 @@
                         };
                     });
 
-                    if (LOCKED_VP)
-                        DATA = DATA.filter(function(d) {
-                            return d.vp === LOCKED_VP;
+                    // Aplicar filtros bloqueados desde URL
+                    if (LOCKED_FILTERS) {
+                        FILTER_DEFS.forEach(function(def) {
+                            filterState[def.id].clear();
+                            if (LOCKED_FILTERS[def.id]) {
+                                LOCKED_FILTERS[def.id].forEach(function(v) {
+                                    filterState[def.id].add(v);
+                                });
+                            }
                         });
+                    }
 
                     var now = new Date();
                     document.getElementById("date-badge").textContent = now
@@ -1419,28 +1394,15 @@
                             return c.toUpperCase();
                         });
 
-                    // Aplicar filtros bloqueados desde la URL
-                    if (LOCKED_FILTERS && LOCKED_FILTERS !== "INVALID") {
-                        FILTER_DEFS.forEach(function(def) {
-                            filterState[def.id].clear();
-                            if (LOCKED_FILTERS[def.id]) {
-                                LOCKED_FILTERS[def.id].forEach(function(v) {
-                                    filterState[def.id].add(v);
-                                });
-                            }
-                        });
-                    }
-
+                    document.getElementById("error-banner").classList.remove("show");
+                    document.getElementById("loading-overlay").classList.add("hidden");
                     buildFilterDropdowns();
                     refresh();
                 })
                 .catch(function(e) {
                     console.error("Error cargando datos:", e);
-                    document.getElementById("error-banner").classList.add("show");
-                    if (DATA.length) refresh();
-                })
-                .finally(function() {
                     document.getElementById("loading-overlay").classList.add("hidden");
+                    document.getElementById("error-banner").classList.add("show");
                 });
         }
 
@@ -1480,8 +1442,8 @@
         }
 
         /* ============================================================
-   5. DROPDOWNS DE FILTRO MÚLTIPLE
-   ============================================================ */
+   DROPDOWNS
+============================================================ */
         function buildFilterDropdowns() {
             var bar = document.getElementById("filter-bar");
             bar.querySelectorAll(".ms-wrap").forEach(function(el) {
@@ -1492,16 +1454,15 @@
             });
             var resetBtn = bar.querySelector(".btn-reset");
 
-            // Mostrar botón compartir solo en vista admin (sin filtros bloqueados)
+            // Mostrar botón compartir solo en vista admin
             if (!LOCKED_FILTERS) {
                 document.getElementById("btn-share").style.display = "block";
             }
 
-            // Si hay filtros bloqueados, ocultar limpiar y mostrar badge
-            if (LOCKED_FILTERS && LOCKED_FILTERS !== "INVALID") {
+            // Badge y bloqueo si hay filtros bloqueados
+            if (LOCKED_FILTERS) {
                 resetBtn.style.display = "none";
-                var existing = document.getElementById("lock-badge");
-                if (!existing) {
+                if (!document.getElementById("lock-badge")) {
                     var lockBadge = document.createElement("div");
                     lockBadge.id = "lock-badge";
                     lockBadge.style.cssText =
@@ -1512,8 +1473,6 @@
             }
 
             FILTER_DEFS.forEach(function(def) {
-                if (LOCKED_FILTERS && def.id === "f-vp") return;
-
                 var options;
                 if (def.fixed) {
                     options = def.fixed.map(function(v) {
@@ -1523,20 +1482,22 @@
                         };
                     });
                 } else if (def.statusMap) {
-                    options = Object.entries(STATUS).map(function(e) {
+                    options = Object.keys(STATUS).map(function(k) {
                         return {
-                            value: e[0],
-                            label: e[1].label
+                            value: k,
+                            label: STATUS[k].label
                         };
                     });
                 } else {
-                    var vals = [
-                        ...new Set(
-                            DATA.map(function(d) {
-                                return d[def.field];
-                            }).filter(Boolean)
-                        ),
-                    ].sort();
+                    var vals = [];
+                    var seen = {};
+                    DATA.forEach(function(d) {
+                        if (d[def.field] && !seen[d[def.field]]) {
+                            seen[d[def.field]] = 1;
+                            vals.push(d[def.field]);
+                        }
+                    });
+                    vals.sort();
                     options = vals.map(function(v) {
                         return {
                             value: v,
@@ -1545,8 +1506,8 @@
                     });
                 }
 
-                // Preseleccionar estatus todos por defecto
-                if (def.id === "f-estatus") {
+                // Preseleccionar todos los estatus por defecto (solo si no hay filtros bloqueados)
+                if (def.id === "f-estatus" && !LOCKED_FILTERS) {
                     options.forEach(function(o) {
                         filterState[def.id].add(o.value);
                     });
@@ -1570,7 +1531,6 @@
                 bar.insertBefore(wrap, resetBtn);
 
                 // Portal
-                var showSearch = options.length > 6;
                 var portal = document.createElement("div");
                 portal.className = "ms-dropdown-portal";
                 portal.id = "portal-" + def.id;
@@ -1580,15 +1540,15 @@
                 var optsHTML = options
                     .map(function(o) {
                         var safeId = def.id + "-" + o.value.replace(/[^a-z0-9]/gi, "_");
-                        var checked = filterState[def.id].has(o.value) ? "checked" : "";
+                        var chk = filterState[def.id].has(o.value) ? "checked" : "";
                         return (
-                            '<div class="ms-option" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;" onmouseover="this.style.background=\'rgba(255,255,255,0.07)\'" onmouseout="this.style.background=\'\'">' +
+                            '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;" onmouseover="this.style.background=\'rgba(255,255,255,0.07)\'" onmouseout="this.style.background=\'\'">' +
                             '<input type="checkbox" id="' +
                             safeId +
                             '" value="' +
                             o.value +
                             '" ' +
-                            checked +
+                            chk +
                             ' style="accent-color:var(--accent);width:13px;height:13px;cursor:pointer;">' +
                             '<label for="' +
                             safeId +
@@ -1600,6 +1560,7 @@
                     })
                     .join("");
 
+                var showSearch = options.length > 6;
                 portal.innerHTML =
                     (showSearch ?
                         '<input class="ms-search" placeholder="Buscar…" type="text" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;">' :
@@ -1615,15 +1576,13 @@
 
                 var btn = wrap.querySelector(".ms-btn");
 
-                // Si hay filtros bloqueados, deshabilitar el botón
-                if (LOCKED_FILTERS && LOCKED_FILTERS !== "INVALID") {
+                // Bloquear si hay filtros de URL
+                if (LOCKED_FILTERS) {
                     btn.style.pointerEvents = "none";
                     btn.style.opacity = "0.5";
                     btn.style.cursor = "not-allowed";
-                    btn.title = "Vista compartida — filtros bloqueados";
                 }
 
-                // Abrir/cerrar
                 btn.addEventListener("click", function(e) {
                     e.stopPropagation();
                     var isOpen = portal.style.display === "block";
@@ -1636,21 +1595,21 @@
                         if (s) {
                             s.value = "";
                             s.focus();
-                            portal.querySelectorAll(".ms-option").forEach(function(o) {
-                                o.style.display = "";
-                            });
+                            portal
+                                .querySelectorAll("[style*=display]")
+                                .forEach(function(o) {
+                                    o.style.display = "";
+                                });
                         }
                     }
                 });
 
-                // Reposicionar en scroll/resize
                 function reposition() {
                     if (portal.style.display === "block") positionPortal(btn, portal);
                 }
                 window.addEventListener("scroll", reposition, true);
                 window.addEventListener("resize", reposition);
 
-                // Búsqueda
                 var searchEl = portal.querySelector(".ms-search");
                 if (searchEl) {
                     searchEl.addEventListener("click", function(e) {
@@ -1658,10 +1617,9 @@
                     });
                     searchEl.addEventListener("input", function() {
                         var q = searchEl.value.toLowerCase();
-                        portal.querySelectorAll(".ms-option").forEach(function(opt) {
-                            opt.style.display = opt
-                                .querySelector("label")
-                                .textContent.toLowerCase()
+                        portal.querySelectorAll("div > label").forEach(function(lbl) {
+                            lbl.parentElement.style.display = lbl.textContent
+                                .toLowerCase()
                                 .includes(q) ?
                                 "" :
                                 "none";
@@ -1669,23 +1627,24 @@
                     });
                 }
 
-                // Checkboxes
-                portal.querySelectorAll(".ms-option input").forEach(function(cb) {
-                    cb.addEventListener("change", function(e) {
-                        e.stopPropagation();
-                        if (cb.checked) filterState[def.id].add(cb.value);
-                        else filterState[def.id].delete(cb.value);
-                        updateDropdownBtn(def);
-                        refresh();
+                portal
+                    .querySelectorAll("input[type=checkbox]")
+                    .forEach(function(cb) {
+                        cb.addEventListener("change", function(e) {
+                            e.stopPropagation();
+                            if (cb.checked) filterState[def.id].add(cb.value);
+                            else filterState[def.id].delete(cb.value);
+                            updateDropdownBtn(def);
+                            refresh();
+                        });
                     });
-                });
 
                 portal
                     .querySelector(".ms-sel-all")
                     .addEventListener("click", function(e) {
                         e.stopPropagation();
                         portal
-                            .querySelectorAll(".ms-option input")
+                            .querySelectorAll("input[type=checkbox]")
                             .forEach(function(cb) {
                                 cb.checked = true;
                                 filterState[def.id].add(cb.value);
@@ -1693,12 +1652,13 @@
                         updateDropdownBtn(def);
                         refresh();
                     });
+
                 portal
                     .querySelector(".ms-clr-all")
                     .addEventListener("click", function(e) {
                         e.stopPropagation();
                         portal
-                            .querySelectorAll(".ms-option input")
+                            .querySelectorAll("input[type=checkbox]")
                             .forEach(function(cb) {
                                 cb.checked = false;
                             });
@@ -1745,7 +1705,7 @@
                 valEl.textContent = "Todos";
                 badgeEl.style.display = "none";
             } else {
-                var labels = [...sel].map(function(v) {
+                var labels = Array.from(sel).map(function(v) {
                     return def.statusMap ? (STATUS[v] ? STATUS[v].label : v) : v;
                 });
                 valEl.textContent =
@@ -1756,8 +1716,8 @@
         }
 
         /* ============================================================
-   6. FILTRADO
-   ============================================================ */
+   FILTRADO
+============================================================ */
         function getFiltered() {
             return DATA.filter(function(r) {
                 return FILTER_DEFS.every(function(def) {
@@ -1769,11 +1729,12 @@
         }
 
         /* ============================================================
-   7. CHIPS
-   ============================================================ */
+   CHIPS
+============================================================ */
         function renderChips() {
             var container = document.getElementById("active-filters");
             container.innerHTML = "";
+            if (LOCKED_FILTERS) return; // No mostrar chips en vista bloqueada
             FILTER_DEFS.forEach(function(def) {
                 filterState[def.id].forEach(function(val) {
                     var label = def.statusMap ?
@@ -1788,7 +1749,7 @@
                         def.label +
                         ": <b>" +
                         label +
-                        '</b></span><span class="chip-x" title="Quitar">×</span>';
+                        "</b></span><span class='chip-x' title='Quitar'>×</span>";
                     chip
                         .querySelector(".chip-x")
                         .addEventListener("click", function() {
@@ -1807,8 +1768,8 @@
         }
 
         /* ============================================================
-   8. KPIs
-   ============================================================ */
+   KPIs
+============================================================ */
         function updateKPIs(data) {
             document.getElementById("k-total").textContent = data.length;
             document.getElementById("k-vacante").textContent = data.filter(
@@ -1837,8 +1798,8 @@
         }
 
         /* ============================================================
-   9. GRÁFICAS
-   ============================================================ */
+   GRÁFICAS
+============================================================ */
         Chart.defaults.color = "rgba(232,240,250,0.7)";
         Chart.defaults.font = {
             family: "'DM Sans',sans-serif",
@@ -1974,7 +1935,8 @@
                                         ": " +
                                         c.raw +
                                         " (" +
-                                        Math.round((c.raw / data.length) * 100) || 0 + "%)"
+                                        Math.round((c.raw / data.length) * 100) +
+                                        "%)"
                                     );
                                 },
                             },
@@ -1985,8 +1947,8 @@
         }
 
         /* ============================================================
-   10. TABLA
-   ============================================================ */
+   TABLA
+============================================================ */
         function badge(cls, text) {
             return (
                 '<span class="badge ' +
@@ -2087,8 +2049,8 @@
         }
 
         /* ============================================================
-   11. DRAWER
-   ============================================================ */
+   DRAWER
+============================================================ */
         function openDrawer(req) {
             var row = DATA.find(function(d) {
                 return d.req === req;
@@ -2171,8 +2133,8 @@
         });
 
         /* ============================================================
-   12. SORT / RESET / REFRESH
-   ============================================================ */
+   SORT / RESET / REFRESH
+============================================================ */
         function sortBy(col) {
             if (sortCol === col) sortAsc = !sortAsc;
             else {
@@ -2207,29 +2169,31 @@
         }
 
         /* ============================================================
-   14. MODAL COMPARTIR
-   ============================================================ */
+   MODAL COMPARTIR
+============================================================ */
         function openShareModal() {
-            // Poblar el select con las VPs disponibles
-            var select = document.getElementById("share-vp-select");
-            var vps = [
-                ...new Set(
-                    DATA.map(function(d) {
-                        return d.vp;
-                    }).filter(Boolean)
-                ),
-            ].sort();
-            select.innerHTML = '<option value="">— Selecciona una VP —</option>';
-            vps.forEach(function(vp) {
-                var o = document.createElement("option");
-                o.value = vp;
-                o.textContent = vp;
-                select.appendChild(o);
+            var summary = document.getElementById("share-filters-summary");
+            var hasFilters = FILTER_DEFS.some(function(def) {
+                return filterState[def.id].size > 0;
             });
+            if (hasFilters) {
+                var lines = [];
+                FILTER_DEFS.forEach(function(def) {
+                    if (filterState[def.id].size === 0) return;
+                    var labels = Array.from(filterState[def.id]).map(function(v) {
+                        return def.statusMap ? (STATUS[v] ? STATUS[v].label : v) : v;
+                    });
+                    lines.push("<b>" + def.label + ":</b> " + labels.join(", "));
+                });
+                summary.innerHTML = lines.join("<br>");
+            } else {
+                summary.innerHTML =
+                    "⚠️ No hay filtros aplicados. El link mostrará todas las vacantes.";
+            }
+            summary.style.display = "block";
             document.getElementById("share-result").style.display = "none";
             document.getElementById("copy-success").style.display = "none";
-            var overlay = document.getElementById("share-overlay");
-            overlay.style.display = "flex";
+            document.getElementById("share-overlay").style.display = "flex";
         }
 
         function closeShareModal() {
@@ -2237,20 +2201,10 @@
         }
 
         function generateShareLink() {
-            var vp = document.getElementById("share-vp-select").value;
-            if (!vp) {
-                document.getElementById("share-vp-select").style.borderColor =
-                    "var(--danger)";
-                setTimeout(function() {
-                    document.getElementById("share-vp-select").style.borderColor =
-                        "rgba(255,255,255,0.15)";
-                }, 1500);
-                return;
-            }
-            var token = encodeVP(vp);
+            var token = encodeFilters(filterState);
             var base = window.location.href.split("?")[0];
-            var link = base + "?v=" + token;
-            document.getElementById("share-link-input").value = link;
+            document.getElementById("share-link-input").value =
+                base + "?f=" + token;
             document.getElementById("share-result").style.display = "block";
             document.getElementById("copy-success").style.display = "none";
         }
@@ -2269,15 +2223,15 @@
                     }, 2500);
                 })
                 .catch(function() {
-                    // Fallback para navegadores sin clipboard API
                     input.select();
                     document.execCommand("copy");
                     document.getElementById("copy-success").style.display = "block";
                 });
         }
 
-        // Mostrar botón compartir solo cuando los datos están cargados
-        // (se llama desde buildFilterDropdowns)
+        /* ============================================================
+   INICIO
+============================================================ */
         loadData();
     </script>
 </body>
