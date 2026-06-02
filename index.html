@@ -267,8 +267,34 @@
 </div>
 
 <script>
-// ── CONFIG ─────────────────────────────────────────────────────
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJWulrR0cxHIz8X9LcHzYBa1kV3mc2eLoVTKXM0f4qqpqXDL_2_uNtS6aU-yTTfFgQrA/exec";
+// ── CONFIGURACIÓN DE ACCESO ────────────────────────────────────
+// Salt secreto — cámbialo por algo que solo tú conozcas
+const SALT = "FTD2026@rrhh";
+
+// Si hay parámetro ?v= en la URL, decodifica y valida
+// Si no hay parámetro, carga normal (vista completa para el admin)
+const URL_PARAMS = new URLSearchParams(window.location.search);
+const LOCKED_VP  = decodeVP(URL_PARAMS.get("v"));
+
+function encodeVP(vpName) {
+  // Para generar links: btoa(SALT + "|" + vpName)
+  return btoa(SALT + "|" + vpName);
+}
+
+function decodeVP(token) {
+  if (!token) return null;
+  try {
+    const decoded = atob(token);
+    if (!decoded.startsWith(SALT + "|")) return "INVALID";
+    return decoded.slice(SALT.length + 1);
+  } catch(e) {
+    return "INVALID";
+  }
+}
+
+// Si el token es inválido, bloqueamos todo
+const ACCESS_BLOCKED = LOCKED_VP === "INVALID";
+// ── CONFIG ───────────────────────────────────────────────────── = "https://script.google.com/macros/s/AKfycbxJWulrR0cxHIz8X9LcHzYBa1kV3mc2eLoVTKXM0f4qqpqXDL_2_uNtS6aU-yTTfFgQrA/exec";
 
 const COL = {req:0,prio:1,fecha:2,responsable:3,vp:5,dir:6,loc:7,contacto:8,estatus:9,tipo:10,cargo:11,nivel:12,contrato:13,candidatos:14,comentario:21};
 
@@ -300,6 +326,16 @@ FILTER_DEFS.forEach(f => filterState[f.id] = new Set());
 async function loadData() {
   document.getElementById("loading-overlay").classList.remove("hidden");
   document.getElementById("error-banner").classList.remove("show");
+
+  // Bloqueo total si token inválido
+  if (ACCESS_BLOCKED) {
+    document.getElementById("loading-overlay").classList.add("hidden");
+    document.getElementById("tbody").innerHTML =
+      `<tr><td colspan="10"><div class="empty-state">🔒 Acceso no autorizado.</div></td></tr>`;
+    ["k-total","k-vacante","k-entrev","k-oferta","k-alta"].forEach(id => document.getElementById(id).textContent = "—");
+    return;
+  }
+
   try {
     const res = await fetch(SCRIPT_URL);
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -322,9 +358,16 @@ async function loadData() {
       comentario:  String(r[COL.comentario]||"").trim(),
       candidatos:  parseCandidatos(String(r[COL.candidatos]||"")),
     }));
+
+    // Si hay VP bloqueada, filtrar DATA desde el origen
+    if (LOCKED_VP) {
+      DATA = DATA.filter(d => d.vp === LOCKED_VP);
+    }
+
     const now = new Date();
     document.getElementById("date-badge").textContent =
       now.toLocaleDateString("es-VE",{month:"long",year:"numeric"}).replace(/^\w/,c=>c.toUpperCase());
+
     buildFilterDropdowns();
     refresh();
   } catch(e) {
@@ -354,9 +397,22 @@ function buildFilterDropdowns() {
   bar.querySelectorAll(".ms-wrap").forEach(el => el.remove());
   // Eliminar dropdowns flotantes previos del body
   document.querySelectorAll(".ms-dropdown-portal").forEach(el => el.remove());
-  const resetBtn = bar.querySelector(".btn-reset");
+  // Si hay VP bloqueada, ocultar el botón "Limpiar todo"
+  if (LOCKED_VP) {
+    const resetBtn = bar.querySelector(".btn-reset");
+    if (resetBtn) resetBtn.style.display = "none";
+    // Mostrar badge de VP activa en el header
+    document.getElementById("date-badge").style.marginLeft = "auto";
+    const vpBadge = document.createElement("div");
+    vpBadge.style.cssText = "font-family:var(--mono);font-size:11px;color:#ffcc7a;background:rgba(255,179,71,0.12);border:1px solid rgba(255,179,71,0.25);padding:6px 12px;border-radius:20px;white-space:nowrap;";
+    vpBadge.textContent = "🔒 " + LOCKED_VP;
+    document.querySelector("header").appendChild(vpBadge);
+  }
 
   FILTER_DEFS.forEach(def => {
+    // Si hay VP bloqueada, ocultar el filtro de VP completamente
+    if (LOCKED_VP && def.id === "f-vp") return;
+
     let options;
     if (def.fixed) {
       options = def.fixed.map(v => ({value:v, label:v}));
@@ -366,7 +422,10 @@ function buildFilterDropdowns() {
       options = [...new Set(DATA.map(d=>d[def.field]).filter(Boolean))].sort().map(v=>({value:v,label:v}));
     }
 
-    // Botón en la barra
+    // Si es el filtro de estatus, preseleccionar todos al construir
+    if (def.id === "f-estatus") {
+      options.forEach(o => filterState[def.id].add(o.value));
+    }
     const wrap = document.createElement("div");
     wrap.className = "ms-wrap";
     wrap.id = "wrap-" + def.id;
@@ -408,16 +467,24 @@ function buildFilterDropdowns() {
       const isOpen = portal.style.display === "block";
       closeAllDropdowns();
       if (!isOpen) {
-        const rect = btn.getBoundingClientRect();
         portal.style.display = "block";
-        portal.style.left = rect.left + "px";
-        portal.style.top  = (rect.bottom + 6) + "px";
-        portal.style.minWidth = Math.max(rect.width, 200) + "px";
+        positionPortal(btn, portal);
         btn.classList.add("open");
         const s = portal.querySelector(".ms-search");
         if (s) { s.value = ""; s.focus(); portal.querySelectorAll(".ms-option").forEach(o=>o.style.display=""); }
       }
     });
+
+    // Reposicionar al hacer scroll o resize
+    const reposition = () => { if (portal.style.display === "block") positionPortal(btn, portal); };
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+
+    // Si es estatus, marcar todos los checkboxes
+    if (def.id === "f-estatus") {
+      portal.querySelectorAll(".ms-option input").forEach(cb => cb.checked = true);
+      updateDropdownBtn(def);
+    }
 
     // Búsqueda
     const searchEl = portal.querySelector(".ms-search");
@@ -476,11 +543,24 @@ function updateDropdownBtn(def) {
   }
 }
 
+function positionPortal(btn, portal) {
+  const rect = btn.getBoundingClientRect();
+  portal.style.left     = rect.left + "px";
+  portal.style.top      = (rect.bottom + 6) + "px";
+  portal.style.minWidth = Math.max(rect.width, 200) + "px";
+}
+
 function closeAllDropdowns() {
   document.querySelectorAll(".ms-dropdown-portal").forEach(d => d.style.display = "none");
   document.querySelectorAll(".ms-btn.open").forEach(b => b.classList.remove("open"));
 }
-document.addEventListener("click", closeAllDropdowns);
+
+// Cerrar solo si el click fue fuera de cualquier portal o botón
+document.addEventListener("click", e => {
+  const inPortal = e.target.closest(".ms-dropdown-portal");
+  const inBtn    = e.target.closest(".ms-btn");
+  if (!inPortal && !inBtn) closeAllDropdowns();
+});
 
 // ── FILTRADO ───────────────────────────────────────────────────
 function getFiltered() {
