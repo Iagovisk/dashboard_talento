@@ -1512,7 +1512,7 @@
             }
 
             FILTER_DEFS.forEach(function(def) {
-                if (LOCKED_VP && def.id === "f-vp") return;
+                if (LOCKED_FILTERS && def.id === "f-vp") return;
 
                 var options;
                 if (def.fixed) {
