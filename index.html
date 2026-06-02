@@ -25,8 +25,6 @@
         .logo-area h1 span{color:var(--accent)}
         .logo-area p{font-size:13px;color:var(--muted);margin-top:4px}
         .date-badge{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(0,198,167,0.1);border:1px solid rgba(0,198,167,0.25);padding:6px 12px;border-radius:20px;white-space:nowrap}
-
-        /* KPIs */
         .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
         .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
         .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.3)}
@@ -40,56 +38,28 @@
         .kpi-card.c-total .kpi-val{color:var(--sky)}.kpi-card.c-vac .kpi-val{color:var(--purple)}
         .kpi-card.c-entrev .kpi-val{color:var(--accent2)}.kpi-card.c-oferta .kpi-val{color:var(--sky)}
         .kpi-card.c-alta .kpi-val{color:var(--danger)}
-
-        /* FILTER BAR */
         .filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px;margin-bottom:20px}
         .filter-bar-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);white-space:nowrap;padding-top:7px}
-
-        /* MULTI-SELECT DROPDOWN */
         .ms-wrap{position:relative}
-        .ms-btn{display:flex;align-items:center;gap:6px;font-family:var(--font);font-size:12px;background:var(--surface2);color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:6px 10px 6px 10px;cursor:pointer;white-space:nowrap;user-select:none;transition:border-color .2s;min-width:110px}
+        .ms-btn{display:flex;align-items:center;gap:6px;font-family:var(--font);font-size:12px;background:var(--surface2);color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:6px 10px;cursor:pointer;white-space:nowrap;user-select:none;transition:border-color .2s;min-width:110px}
         .ms-btn:hover,.ms-btn.open{border-color:var(--accent)}
         .ms-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:2px}
         .ms-val{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .ms-badge{background:var(--accent);color:#071e38;border-radius:10px;font-size:9px;font-weight:700;padding:1px 5px;flex-shrink:0}
         .ms-arrow{font-size:9px;color:var(--muted);flex-shrink:0;transition:transform .2s}
         .ms-btn.open .ms-arrow{transform:rotate(180deg)}
-
-        .ms-dropdown{position:fixed;min-width:200px;background:#0d2540;border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius-sm);z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);overflow:hidden;display:none}
-        .ms-dropdown.open{display:block}
-        .ms-dropdown.open{display:block}
-        .ms-search{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-family:var(--font);font-size:12px;color:var(--text);outline:none}
-        .ms-search::placeholder{color:var(--muted)}
-        .ms-options{max-height:200px;overflow-y:auto}
-        .ms-option{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;transition:background .12s}
-        .ms-option:hover{background:rgba(255,255,255,0.06)}
-        .ms-option input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;flex-shrink:0;cursor:pointer}
-        .ms-option label{cursor:pointer;flex:1}
-        .ms-footer{display:flex;gap:6px;padding:8px 10px;border-top:1px solid rgba(255,255,255,0.07)}
-        .ms-footer button{flex:1;font-family:var(--font);font-size:11px;font-weight:600;padding:5px 8px;border-radius:var(--radius-sm);cursor:pointer;border:none;transition:background .15s}
-        .ms-sel-all{background:rgba(0,198,167,0.15);color:var(--accent)}
-        .ms-sel-all:hover{background:rgba(0,198,167,0.25)}
-        .ms-clr-all{background:rgba(255,255,255,0.06);color:var(--muted)}
-        .ms-clr-all:hover{background:rgba(255,107,107,0.15);color:var(--danger)}
-
         .btn-reset{font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);padding:6px 14px;cursor:pointer;transition:all .2s;white-space:nowrap;margin-top:1px}
         .btn-reset:hover{color:var(--danger);border-color:var(--danger)}
-
-        /* ACTIVE FILTERS CHIPS */
         .active-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
         .active-filters:empty{display:none}
         .chip{display:inline-flex;align-items:center;gap:5px;background:rgba(0,198,167,0.12);border:1px solid rgba(0,198,167,0.25);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--accent)}
         .chip-x{cursor:pointer;font-size:13px;line-height:1;opacity:.7}
         .chip-x:hover{opacity:1}
-
-        /* CHARTS */
         .charts-row{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:20px}
         .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px}
         .chart-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:16px;text-transform:uppercase;letter-spacing:.06em}
         .chart-title span{color:var(--accent);font-weight:400;font-size:11px;margin-left:6px;text-transform:none;letter-spacing:0}
         .chart-wrap{position:relative;height:250px}
-
-        /* TABLE */
         .table-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
         .table-header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
         .table-header-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
@@ -120,8 +90,6 @@
         .has-candidates{color:var(--accent);font-size:11px;font-family:var(--mono)}
         .no-candidates{color:var(--muted);font-size:11px;font-family:var(--mono)}
         .empty-state{text-align:center;padding:48px 20px;color:var(--muted);font-size:13px}
-
-        /* LOADING */
         .loading-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
         .loading-overlay.hidden{opacity:0;pointer-events:none}
         .spinner{width:40px;height:40px;border:3px solid rgba(0,198,167,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
@@ -131,8 +99,6 @@
         .btn-retry{font-family:var(--font);font-size:12px;font-weight:600;color:var(--danger);background:transparent;border:1px solid var(--danger);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;margin-left:auto}
         .btn-retry:hover{background:rgba(255,107,107,0.1)}
         @keyframes spin{to{transform:rotate(360deg)}}
-
-        /* DRAWER */
         .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px)}
         .drawer-overlay.open{opacity:1;pointer-events:all}
         .drawer{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:96vw;background:#0e2847;border-left:1px solid rgba(255,255,255,0.1);z-index:101;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
@@ -156,7 +122,6 @@
         .meta-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;font-size:12px}
         .meta-row .meta-key{color:var(--muted);white-space:nowrap;margin-right:12px}
         .meta-row .meta-val{color:var(--text);font-weight:500;text-align:right;max-width:230px}
-
         @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.charts-row{grid-template-columns:1fr}}
         @media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}}
         ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}
@@ -199,14 +164,10 @@
         <div class="kpi-card c-alta"><div class="kpi-label">Prioridad alta</div><div class="kpi-val" id="k-alta">—</div><div class="kpi-sub">requieren atención urgente</div></div>
     </div>
 
-    <!-- FILTER BAR -->
     <div class="filter-bar" id="filter-bar">
         <span class="filter-bar-label">Filtros</span>
-        <!-- Los dropdowns se generan dinámicamente -->
         <button class="btn-reset" onclick="resetFilters()">✕ Limpiar todo</button>
     </div>
-
-    <!-- CHIPS DE FILTROS ACTIVOS -->
     <div class="active-filters" id="active-filters"></div>
 
     <div class="charts-row">
@@ -267,240 +228,246 @@
 </div>
 
 <script>
-// ── CONFIGURACIÓN DE ACCESO ────────────────────────────────────
-// Salt secreto — cámbialo por algo que solo tú conozcas
-const SALT = "FTD2026@rrhh";
+/* ============================================================
+   1. CONSTANTES GLOBALES
+   ============================================================ */
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJWulrR0cxHIz8X9LcHzYBa1kV3mc2eLoVTKXM0f4qqpqXDL_2_uNtS6aU-yTTfFgQrA/exec";
 
-// Si hay parámetro ?v= en la URL, decodifica y valida
-// Si no hay parámetro, carga normal (vista completa para el admin)
-const URL_PARAMS = new URLSearchParams(window.location.search);
-const LOCKED_VP  = decodeVP(URL_PARAMS.get("v"));
+var COL = {req:0,prio:1,fecha:2,responsable:3,vp:5,dir:6,loc:7,contacto:8,estatus:9,tipo:10,cargo:11,nivel:12,contrato:13,candidatos:14,comentario:21};
 
-function encodeVP(vpName) {
-  // Para generar links: btoa(SALT + "|" + vpName)
-  return btoa(SALT + "|" + vpName);
-}
+var STATUS = {
+  "EN PROCESO ENTREVISTA":{label:"En entrevista",cls:"b-entrevista",color:"#FFB347"},
+  "EN PROCESO DE INGRESO":{label:"En ingreso",   cls:"b-ingreso",   color:"#00C6A7"},
+  "EN PROCESO DE OFERTA": {label:"En oferta",    cls:"b-oferta",    color:"#5EAAF7"},
+  "VACANTE":              {label:"Vacante",      cls:"b-vacante",   color:"#9B7FEA"}
+};
+
+var FILTER_DEFS = [
+  {id:"f-vp",     label:"Vicepresidencia", field:"vp"},
+  {id:"f-dept",   label:"Departamento",    field:"dir"},
+  {id:"f-estatus",label:"Estatus",         field:"estatus", statusMap:true},
+  {id:"f-nivel",  label:"Nivel",           field:"nivel"},
+  {id:"f-tipo",   label:"Tipo",            field:"tipo"},
+  {id:"f-prio",   label:"Prioridad",       field:"prio",    fixed:["ALTA","MEDIA"]},
+  {id:"f-loc",    label:"Localidad",       field:"loc"}
+];
+
+/* ============================================================
+   2. ACCESO POR URL (token VP)
+   ============================================================ */
+var SALT = "FTD2026@rrhh";
+
+function encodeVP(vpName) { return btoa(SALT + "|" + vpName); }
 
 function decodeVP(token) {
   if (!token) return null;
   try {
-    const decoded = atob(token);
-    if (!decoded.startsWith(SALT + "|")) return "INVALID";
+    var decoded = atob(token);
+    if (decoded.indexOf(SALT + "|") !== 0) return "INVALID";
     return decoded.slice(SALT.length + 1);
-  } catch(e) {
-    return "INVALID";
-  }
+  } catch(e) { return "INVALID"; }
 }
 
-// Si el token es inválido, bloqueamos todo
-const ACCESS_BLOCKED = LOCKED_VP === "INVALID";
-// ── CONFIG ───────────────────────────────────────────────────── = "https://script.google.com/macros/s/AKfycbxJWulrR0cxHIz8X9LcHzYBa1kV3mc2eLoVTKXM0f4qqpqXDL_2_uNtS6aU-yTTfFgQrA/exec";
+var LOCKED_VP     = decodeVP(new URLSearchParams(window.location.search).get("v"));
+var ACCESS_BLOCKED = LOCKED_VP === "INVALID";
 
-const COL = {req:0,prio:1,fecha:2,responsable:3,vp:5,dir:6,loc:7,contacto:8,estatus:9,tipo:10,cargo:11,nivel:12,contrato:13,candidatos:14,comentario:21};
+/* ============================================================
+   3. ESTADO
+   ============================================================ */
+var DATA = [];
+var sortCol = "vp", sortAsc = true, barChart = null, donutChart = null;
+var filterState = {};
+FILTER_DEFS.forEach(function(f){ filterState[f.id] = new Set(); });
 
-const STATUS = {
-  "EN PROCESO ENTREVISTA":{label:"En entrevista",cls:"b-entrevista",color:"#FFB347"},
-  "EN PROCESO DE INGRESO":{label:"En ingreso",   cls:"b-ingreso",   color:"#00C6A7"},
-  "EN PROCESO DE OFERTA": {label:"En oferta",    cls:"b-oferta",    color:"#5EAAF7"},
-  "VACANTE":              {label:"Vacante",      cls:"b-vacante",   color:"#9B7FEA"},
-};
-
-// Definición de filtros: id, label, campo del DATA
-const FILTER_DEFS = [
-  {id:"f-vp",    label:"Vicepresidencia", field:"vp"},
-  {id:"f-dept",  label:"Departamento",    field:"dir"},
-  {id:"f-estatus",label:"Estatus",        field:"estatus", statusMap:true},
-  {id:"f-nivel", label:"Nivel",           field:"nivel"},
-  {id:"f-tipo",  label:"Tipo",            field:"tipo"},
-  {id:"f-prio",  label:"Prioridad",       field:"prio",    fixed:["ALTA","MEDIA"]},
-  {id:"f-loc",   label:"Localidad",       field:"loc"},
-];
-
-let DATA = [];
-let sortCol = "vp", sortAsc = true, barChart = null, donutChart = null;
-// Estado de filtros: { filterId: Set(valores seleccionados) }
-const filterState = {};
-FILTER_DEFS.forEach(f => filterState[f.id] = new Set());
-
-// ── CARGA DE DATOS ─────────────────────────────────────────────
-async function loadData() {
+/* ============================================================
+   4. CARGA DE DATOS
+   ============================================================ */
+function loadData() {
   document.getElementById("loading-overlay").classList.remove("hidden");
   document.getElementById("error-banner").classList.remove("show");
 
-  // Bloqueo total si token inválido
   if (ACCESS_BLOCKED) {
     document.getElementById("loading-overlay").classList.add("hidden");
     document.getElementById("tbody").innerHTML =
-      `<tr><td colspan="10"><div class="empty-state">🔒 Acceso no autorizado.</div></td></tr>`;
-    ["k-total","k-vacante","k-entrev","k-oferta","k-alta"].forEach(id => document.getElementById(id).textContent = "—");
+      '<tr><td colspan="10"><div class="empty-state">🔒 Acceso no autorizado.</div></td></tr>';
+    ["k-total","k-vacante","k-entrev","k-oferta","k-alta"].forEach(function(id){
+      document.getElementById(id).textContent = "—";
+    });
     return;
   }
 
-  try {
-    const res = await fetch(SCRIPT_URL);
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const raw = await res.json();
-    const rows = raw.slice(1).filter(r => r[COL.req] && String(r[COL.req]).startsWith("RQ") && r[COL.cargo]);
-    DATA = rows.map(r => ({
-      req:         String(r[COL.req]||"").trim(),
-      prio:        String(r[COL.prio]||"").trim().toUpperCase(),
-      fecha:       String(r[COL.fecha]||"").trim(),
-      responsable: String(r[COL.responsable]||"").trim(),
-      vp:          String(r[COL.vp]||"").trim(),
-      dir:         String(r[COL.dir]||"").trim(),
-      loc:         String(r[COL.loc]||"").trim(),
-      contacto:    String(r[COL.contacto]||"").trim(),
-      estatus:     String(r[COL.estatus]||"").trim().toUpperCase().replace(/\s+/g," "),
-      tipo:        String(r[COL.tipo]||"").trim(),
-      cargo:       String(r[COL.cargo]||"").trim(),
-      nivel:       String(r[COL.nivel]||"").trim(),
-      contrato:    String(r[COL.contrato]||"").trim(),
-      comentario:  String(r[COL.comentario]||"").trim(),
-      candidatos:  parseCandidatos(String(r[COL.candidatos]||"")),
-    }));
+  fetch(SCRIPT_URL)
+    .then(function(res){
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then(function(raw){
+      var rows = raw.slice(1).filter(function(r){
+        return r[COL.req] && String(r[COL.req]).startsWith("RQ") && r[COL.cargo];
+      });
+      DATA = rows.map(function(r){
+        return {
+          req:         String(r[COL.req]||"").trim(),
+          prio:        String(r[COL.prio]||"").trim().toUpperCase(),
+          fecha:       String(r[COL.fecha]||"").trim(),
+          responsable: String(r[COL.responsable]||"").trim(),
+          vp:          String(r[COL.vp]||"").trim(),
+          dir:         String(r[COL.dir]||"").trim(),
+          loc:         String(r[COL.loc]||"").trim(),
+          contacto:    String(r[COL.contacto]||"").trim(),
+          estatus:     String(r[COL.estatus]||"").trim().toUpperCase().replace(/\s+/g," "),
+          tipo:        String(r[COL.tipo]||"").trim(),
+          cargo:       String(r[COL.cargo]||"").trim(),
+          nivel:       String(r[COL.nivel]||"").trim(),
+          contrato:    String(r[COL.contrato]||"").trim(),
+          comentario:  String(r[COL.comentario]||"").trim(),
+          candidatos:  parseCandidatos(String(r[COL.candidatos]||""))
+        };
+      });
 
-    // Si hay VP bloqueada, filtrar DATA desde el origen
-    if (LOCKED_VP) {
-      DATA = DATA.filter(d => d.vp === LOCKED_VP);
-    }
+      if (LOCKED_VP) DATA = DATA.filter(function(d){ return d.vp === LOCKED_VP; });
 
-    const now = new Date();
-    document.getElementById("date-badge").textContent =
-      now.toLocaleDateString("es-VE",{month:"long",year:"numeric"}).replace(/^\w/,c=>c.toUpperCase());
+      var now = new Date();
+      document.getElementById("date-badge").textContent =
+        now.toLocaleDateString("es-VE",{month:"long",year:"numeric"}).replace(/^\w/,function(c){return c.toUpperCase();});
 
-    buildFilterDropdowns();
-    refresh();
-  } catch(e) {
-    console.error("Error cargando datos:", e);
-    document.getElementById("error-banner").classList.add("show");
-    if (DATA.length) refresh();
-  } finally {
-    document.getElementById("loading-overlay").classList.add("hidden");
-  }
+      buildFilterDropdowns();
+      refresh();
+    })
+    .catch(function(e){
+      console.error("Error cargando datos:", e);
+      document.getElementById("error-banner").classList.add("show");
+      if (DATA.length) refresh();
+    })
+    .finally(function(){
+      document.getElementById("loading-overlay").classList.add("hidden");
+    });
 }
 
 function parseCandidatos(texto) {
   if (!texto.trim()) return [];
-  return texto.split(/\||[\n\r]+/).map(s=>s.trim()).filter(Boolean).map(p => {
-    const fechaMatch = p.match(/\b\d{1,2}\s+de\s+\w+(?:\s*\([^)]*\))?/i);
-    const fecha = fechaMatch ? fechaMatch[0] : "";
-    let nombre = p.replace(/^(en proceso de ingreso|en proceso de oferta|en proceso entrevista|en proceso de pruebas|en proceso|en entrevista|ingreso|pendiente)[:\s]*/i,"").trim();
+  return texto.split(/\||[\n\r]+/).map(function(s){ return s.trim(); }).filter(Boolean).map(function(p){
+    var fechaMatch = p.match(/\b\d{1,2}\s+de\s+\w+(?:\s*\([^)]*\))?/i);
+    var fecha = fechaMatch ? fechaMatch[0] : "";
+    var nombre = p.replace(/^(en proceso de ingreso|en proceso de oferta|en proceso entrevista|en proceso de pruebas|en proceso|en entrevista|ingreso|pendiente)[:\s]*/i,"").trim();
     if (fecha) nombre = nombre.replace(fechaMatch[0],"").replace(/[·\-–|]/g,"").trim();
     if (!nombre) nombre = p;
-    return {nombre, statusLabel:"En proceso", fecha, nota:""};
-  }).filter(c=>c.nombre.length>1);
+    return {nombre:nombre, statusLabel:"En proceso", fecha:fecha, nota:""};
+  }).filter(function(c){ return c.nombre.length > 1; });
 }
 
-// ── MULTI-SELECT DROPDOWNS ──────────────────────────────────────
+/* ============================================================
+   5. DROPDOWNS DE FILTRO MÚLTIPLE
+   ============================================================ */
 function buildFilterDropdowns() {
-  const bar = document.getElementById("filter-bar");
-  bar.querySelectorAll(".ms-wrap").forEach(el => el.remove());
-  // Eliminar dropdowns flotantes previos del body
-  document.querySelectorAll(".ms-dropdown-portal").forEach(el => el.remove());
-  // Si hay VP bloqueada, ocultar el botón "Limpiar todo"
+  var bar = document.getElementById("filter-bar");
+  bar.querySelectorAll(".ms-wrap").forEach(function(el){ el.remove(); });
+  document.querySelectorAll(".ms-dropdown-portal").forEach(function(el){ el.remove(); });
+  var resetBtn = bar.querySelector(".btn-reset");
+
+  // Mostrar badge VP bloqueada
   if (LOCKED_VP) {
-    const resetBtn = bar.querySelector(".btn-reset");
-    if (resetBtn) resetBtn.style.display = "none";
-    // Mostrar badge de VP activa en el header
-    document.getElementById("date-badge").style.marginLeft = "auto";
-    const vpBadge = document.createElement("div");
-    vpBadge.style.cssText = "font-family:var(--mono);font-size:11px;color:#ffcc7a;background:rgba(255,179,71,0.12);border:1px solid rgba(255,179,71,0.25);padding:6px 12px;border-radius:20px;white-space:nowrap;";
-    vpBadge.textContent = "🔒 " + LOCKED_VP;
-    document.querySelector("header").appendChild(vpBadge);
+    resetBtn.style.display = "none";
+    var existing = document.getElementById("vp-lock-badge");
+    if (!existing) {
+      var vpBadge = document.createElement("div");
+      vpBadge.id = "vp-lock-badge";
+      vpBadge.style.cssText = "font-family:var(--mono);font-size:11px;color:#ffcc7a;background:rgba(255,179,71,0.12);border:1px solid rgba(255,179,71,0.25);padding:6px 12px;border-radius:20px;white-space:nowrap;";
+      vpBadge.textContent = "🔒 " + LOCKED_VP;
+      document.querySelector("header").appendChild(vpBadge);
+    }
   }
 
-  FILTER_DEFS.forEach(def => {
-    // Si hay VP bloqueada, ocultar el filtro de VP completamente
+  FILTER_DEFS.forEach(function(def){
     if (LOCKED_VP && def.id === "f-vp") return;
 
-    let options;
+    var options;
     if (def.fixed) {
-      options = def.fixed.map(v => ({value:v, label:v}));
+      options = def.fixed.map(function(v){ return {value:v,label:v}; });
     } else if (def.statusMap) {
-      options = Object.entries(STATUS).map(([v,cfg]) => ({value:v, label:cfg.label}));
+      options = Object.entries(STATUS).map(function(e){ return {value:e[0],label:e[1].label}; });
     } else {
-      options = [...new Set(DATA.map(d=>d[def.field]).filter(Boolean))].sort().map(v=>({value:v,label:v}));
+      var vals = [...new Set(DATA.map(function(d){ return d[def.field]; }).filter(Boolean))].sort();
+      options = vals.map(function(v){ return {value:v,label:v}; });
     }
 
-    // Si es el filtro de estatus, preseleccionar todos al construir
+    // Preseleccionar estatus todos por defecto
     if (def.id === "f-estatus") {
-      options.forEach(o => filterState[def.id].add(o.value));
+      options.forEach(function(o){ filterState[def.id].add(o.value); });
     }
-    const wrap = document.createElement("div");
+
+    // Botón
+    var wrap = document.createElement("div");
     wrap.className = "ms-wrap";
     wrap.id = "wrap-" + def.id;
-    wrap.innerHTML = `
-      <div class="ms-btn" title="${def.label}">
-        <span class="ms-label">${def.label}</span>
-        <span class="ms-val">Todos</span>
-        <span class="ms-badge" style="display:none">0</span>
-        <span class="ms-arrow">▼</span>
-      </div>`;
+    wrap.innerHTML = '<div class="ms-btn" title="'+def.label+'">'
+      + '<span class="ms-label">'+def.label+'</span>'
+      + '<span class="ms-val">Todos</span>'
+      + '<span class="ms-badge" style="display:none">0</span>'
+      + '<span class="ms-arrow">▼</span>'
+      + '</div>';
     bar.insertBefore(wrap, resetBtn);
 
-    // Dropdown portal — hijo directo del body para evitar clipping
-    const showSearch = options.length > 6;
-    const portal = document.createElement("div");
+    // Portal
+    var showSearch = options.length > 6;
+    var portal = document.createElement("div");
     portal.className = "ms-dropdown-portal";
     portal.id = "portal-" + def.id;
     portal.style.cssText = "position:fixed;z-index:9999;display:none;min-width:200px;background:#0d2540;border:1px solid rgba(255,255,255,0.2);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,0.7);overflow:hidden;";
-    portal.innerHTML = `
-      ${showSearch ? `<input class="ms-search" placeholder="Buscar…" type="text" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;">` : ""}
-      <div class="ms-options" style="max-height:220px;overflow-y:auto;">
-        ${options.map(o=>`
-          <div class="ms-option" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;transition:background .12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background=''">
-            <input type="checkbox" id="${def.id}-${o.value.replace(/[^a-z0-9]/gi,'_')}" value="${o.value}" style="accent-color:var(--accent);width:13px;height:13px;cursor:pointer;">
-            <label for="${def.id}-${o.value.replace(/[^a-z0-9]/gi,'_')}" style="cursor:pointer;flex:1;color:var(--text);">${o.label}</label>
-          </div>`).join("")}
-      </div>
-      <div style="display:flex;gap:6px;padding:8px 10px;border-top:1px solid rgba(255,255,255,0.07);">
-        <button class="ms-sel-all" style="flex:1;font-family:var(--font);font-size:11px;font-weight:600;padding:5px 8px;border-radius:6px;cursor:pointer;border:none;background:rgba(0,198,167,0.15);color:var(--accent);">Seleccionar todo</button>
-        <button class="ms-clr-all" style="flex:1;font-family:var(--font);font-size:11px;font-weight:600;padding:5px 8px;border-radius:6px;cursor:pointer;border:none;background:rgba(255,255,255,0.06);color:var(--muted);">Limpiar</button>
-      </div>`;
+
+    var optsHTML = options.map(function(o){
+      var safeId = def.id + "-" + o.value.replace(/[^a-z0-9]/gi,"_");
+      var checked = filterState[def.id].has(o.value) ? "checked" : "";
+      return '<div class="ms-option" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;" onmouseover="this.style.background=\'rgba(255,255,255,0.07)\'" onmouseout="this.style.background=\'\'">'
+        + '<input type="checkbox" id="'+safeId+'" value="'+o.value+'" '+checked+' style="accent-color:var(--accent);width:13px;height:13px;cursor:pointer;">'
+        + '<label for="'+safeId+'" style="cursor:pointer;flex:1;color:var(--text);">'+o.label+'</label>'
+        + '</div>';
+    }).join("");
+
+    portal.innerHTML = (showSearch ? '<input class="ms-search" placeholder="Buscar…" type="text" style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;">' : "")
+      + '<div style="max-height:220px;overflow-y:auto;">' + optsHTML + '</div>'
+      + '<div style="display:flex;gap:6px;padding:8px 10px;border-top:1px solid rgba(255,255,255,0.07);">'
+      + '<button class="ms-sel-all" style="flex:1;font-family:var(--font);font-size:11px;font-weight:600;padding:5px 8px;border-radius:6px;cursor:pointer;border:none;background:rgba(0,198,167,0.15);color:var(--accent);">Seleccionar todo</button>'
+      + '<button class="ms-clr-all" style="flex:1;font-family:var(--font);font-size:11px;font-weight:600;padding:5px 8px;border-radius:6px;cursor:pointer;border:none;background:rgba(255,255,255,0.06);color:var(--muted);">Limpiar</button>'
+      + '</div>';
     document.body.appendChild(portal);
 
-    const btn = wrap.querySelector(".ms-btn");
+    var btn = wrap.querySelector(".ms-btn");
 
     // Abrir/cerrar
-    btn.addEventListener("click", e => {
+    btn.addEventListener("click", function(e){
       e.stopPropagation();
-      const isOpen = portal.style.display === "block";
+      var isOpen = portal.style.display === "block";
       closeAllDropdowns();
       if (!isOpen) {
         portal.style.display = "block";
         positionPortal(btn, portal);
         btn.classList.add("open");
-        const s = portal.querySelector(".ms-search");
-        if (s) { s.value = ""; s.focus(); portal.querySelectorAll(".ms-option").forEach(o=>o.style.display=""); }
+        var s = portal.querySelector(".ms-search");
+        if (s) { s.value = ""; s.focus(); portal.querySelectorAll(".ms-option").forEach(function(o){ o.style.display=""; }); }
       }
     });
 
-    // Reposicionar al hacer scroll o resize
-    const reposition = () => { if (portal.style.display === "block") positionPortal(btn, portal); };
+    // Reposicionar en scroll/resize
+    function reposition(){ if (portal.style.display==="block") positionPortal(btn, portal); }
     window.addEventListener("scroll", reposition, true);
     window.addEventListener("resize", reposition);
 
-    // Si es estatus, marcar todos los checkboxes
-    if (def.id === "f-estatus") {
-      portal.querySelectorAll(".ms-option input").forEach(cb => cb.checked = true);
-      updateDropdownBtn(def);
-    }
-
     // Búsqueda
-    const searchEl = portal.querySelector(".ms-search");
+    var searchEl = portal.querySelector(".ms-search");
     if (searchEl) {
-      searchEl.addEventListener("click", e => e.stopPropagation());
-      searchEl.addEventListener("input", () => {
-        const q = searchEl.value.toLowerCase();
-        portal.querySelectorAll(".ms-option").forEach(opt => {
+      searchEl.addEventListener("click", function(e){ e.stopPropagation(); });
+      searchEl.addEventListener("input", function(){
+        var q = searchEl.value.toLowerCase();
+        portal.querySelectorAll(".ms-option").forEach(function(opt){
           opt.style.display = opt.querySelector("label").textContent.toLowerCase().includes(q) ? "" : "none";
         });
       });
     }
 
     // Checkboxes
-    portal.querySelectorAll(".ms-option input").forEach(cb => {
-      cb.addEventListener("change", e => {
+    portal.querySelectorAll(".ms-option input").forEach(function(cb){
+      cb.addEventListener("change", function(e){
         e.stopPropagation();
         if (cb.checked) filterState[def.id].add(cb.value);
         else filterState[def.id].delete(cb.value);
@@ -509,87 +476,85 @@ function buildFilterDropdowns() {
       });
     });
 
-    portal.querySelector(".ms-sel-all").addEventListener("click", e => {
+    portal.querySelector(".ms-sel-all").addEventListener("click", function(e){
       e.stopPropagation();
-      portal.querySelectorAll(".ms-option input").forEach(cb => { cb.checked=true; filterState[def.id].add(cb.value); });
+      portal.querySelectorAll(".ms-option input").forEach(function(cb){ cb.checked=true; filterState[def.id].add(cb.value); });
       updateDropdownBtn(def); refresh();
     });
-    portal.querySelector(".ms-clr-all").addEventListener("click", e => {
+    portal.querySelector(".ms-clr-all").addEventListener("click", function(e){
       e.stopPropagation();
-      portal.querySelectorAll(".ms-option input").forEach(cb => cb.checked=false);
+      portal.querySelectorAll(".ms-option input").forEach(function(cb){ cb.checked=false; });
       filterState[def.id].clear();
       updateDropdownBtn(def); refresh();
     });
+
+    updateDropdownBtn(def);
   });
 }
 
-function buildDropdownHTML() {} // vacío, ya no se usa
-
-function updateDropdownBtn(def) {
-  const wrap = document.getElementById("wrap-" + def.id);
-  if (!wrap) return;
-  const sel = filterState[def.id];
-  const btn  = wrap.querySelector(".ms-btn");
-  const valEl = btn.querySelector(".ms-val");
-  const badgeEl = btn.querySelector(".ms-badge");
-  if (sel.size === 0) {
-    valEl.textContent = "Todos";
-    badgeEl.style.display = "none";
-  } else {
-    const labels = [...sel].map(v => def.statusMap ? (STATUS[v]?.label || v) : v);
-    valEl.textContent = labels.length === 1 ? labels[0] : `${labels.length} selec.`;
-    badgeEl.textContent = sel.size;
-    badgeEl.style.display = "";
-  }
-}
-
 function positionPortal(btn, portal) {
-  const rect = btn.getBoundingClientRect();
+  var rect = btn.getBoundingClientRect();
   portal.style.left     = rect.left + "px";
   portal.style.top      = (rect.bottom + 6) + "px";
   portal.style.minWidth = Math.max(rect.width, 200) + "px";
 }
 
 function closeAllDropdowns() {
-  document.querySelectorAll(".ms-dropdown-portal").forEach(d => d.style.display = "none");
-  document.querySelectorAll(".ms-btn.open").forEach(b => b.classList.remove("open"));
+  document.querySelectorAll(".ms-dropdown-portal").forEach(function(d){ d.style.display="none"; });
+  document.querySelectorAll(".ms-btn.open").forEach(function(b){ b.classList.remove("open"); });
 }
 
-// Cerrar solo si el click fue fuera de cualquier portal o botón
-document.addEventListener("click", e => {
-  const inPortal = e.target.closest(".ms-dropdown-portal");
-  const inBtn    = e.target.closest(".ms-btn");
-  if (!inPortal && !inBtn) closeAllDropdowns();
+document.addEventListener("click", function(e){
+  if (!e.target.closest(".ms-dropdown-portal") && !e.target.closest(".ms-btn")) closeAllDropdowns();
 });
 
-// ── FILTRADO ───────────────────────────────────────────────────
-function getFiltered() {
-  return DATA.filter(r =>
-    FILTER_DEFS.every(def => {
-      const sel = filterState[def.id];
-      if (sel.size === 0) return true;
-      return sel.has(r[def.field]);
-    })
-  );
+function updateDropdownBtn(def) {
+  var wrap = document.getElementById("wrap-" + def.id);
+  if (!wrap) return;
+  var sel = filterState[def.id];
+  var btn = wrap.querySelector(".ms-btn");
+  var valEl = btn.querySelector(".ms-val");
+  var badgeEl = btn.querySelector(".ms-badge");
+  if (sel.size === 0) {
+    valEl.textContent = "Todos";
+    badgeEl.style.display = "none";
+  } else {
+    var labels = [...sel].map(function(v){ return def.statusMap ? (STATUS[v]?STATUS[v].label:v) : v; });
+    valEl.textContent = labels.length === 1 ? labels[0] : labels.length + " selec.";
+    badgeEl.textContent = sel.size;
+    badgeEl.style.display = "";
+  }
 }
 
-// ── CHIPS FILTROS ACTIVOS ──────────────────────────────────────
+/* ============================================================
+   6. FILTRADO
+   ============================================================ */
+function getFiltered() {
+  return DATA.filter(function(r){
+    return FILTER_DEFS.every(function(def){
+      var sel = filterState[def.id];
+      if (sel.size === 0) return true;
+      return sel.has(r[def.field]);
+    });
+  });
+}
+
+/* ============================================================
+   7. CHIPS
+   ============================================================ */
 function renderChips() {
-  const container = document.getElementById("active-filters");
+  var container = document.getElementById("active-filters");
   container.innerHTML = "";
-  FILTER_DEFS.forEach(def => {
-    filterState[def.id].forEach(val => {
-      const label = def.statusMap ? (STATUS[val]?.label || val) : val;
-      const chip = document.createElement("span");
+  FILTER_DEFS.forEach(function(def){
+    filterState[def.id].forEach(function(val){
+      var label = def.statusMap ? (STATUS[val]?STATUS[val].label:val) : val;
+      var chip = document.createElement("span");
       chip.className = "chip";
-      chip.innerHTML = `<span>${def.label}: <b>${label}</b></span><span class="chip-x" title="Quitar">×</span>`;
-      chip.querySelector(".chip-x").addEventListener("click", () => {
+      chip.innerHTML = '<span>'+def.label+': <b>'+label+'</b></span><span class="chip-x" title="Quitar">×</span>';
+      chip.querySelector(".chip-x").addEventListener("click", function(){
         filterState[def.id].delete(val);
-        const portal = document.getElementById("portal-" + def.id);
-        if (portal) {
-          const cb = portal.querySelector(`input[value="${val}"]`);
-          if (cb) cb.checked = false;
-        }
+        var portal = document.getElementById("portal-" + def.id);
+        if (portal) { var cb = portal.querySelector('input[value="'+val+'"]'); if(cb) cb.checked=false; }
         updateDropdownBtn(def);
         refresh();
       });
@@ -598,111 +563,137 @@ function renderChips() {
   });
 }
 
-// ── KPIs ───────────────────────────────────────────────────────
+/* ============================================================
+   8. KPIs
+   ============================================================ */
 function updateKPIs(data) {
   document.getElementById("k-total").textContent   = data.length;
-  document.getElementById("k-vacante").textContent = data.filter(d=>d.estatus==="VACANTE").length;
-  document.getElementById("k-entrev").textContent  = data.filter(d=>d.estatus==="EN PROCESO ENTREVISTA").length;
-  document.getElementById("k-oferta").textContent  = data.filter(d=>d.estatus==="EN PROCESO DE OFERTA"||d.estatus==="EN PROCESO DE INGRESO").length;
-  document.getElementById("k-alta").textContent    = data.filter(d=>d.prio==="ALTA").length;
+  document.getElementById("k-vacante").textContent = data.filter(function(d){ return d.estatus==="VACANTE"; }).length;
+  document.getElementById("k-entrev").textContent  = data.filter(function(d){ return d.estatus==="EN PROCESO ENTREVISTA"; }).length;
+  document.getElementById("k-oferta").textContent  = data.filter(function(d){ return d.estatus==="EN PROCESO DE OFERTA"||d.estatus==="EN PROCESO DE INGRESO"; }).length;
+  document.getElementById("k-alta").textContent    = data.filter(function(d){ return d.prio==="ALTA"; }).length;
 }
 
-// ── GRÁFICAS ───────────────────────────────────────────────────
-Chart.defaults.color="rgba(232,240,250,0.7)";
-Chart.defaults.font={family:"'DM Sans',sans-serif",size:11};
-const group=(arr,k)=>arr.reduce((m,d)=>{(m[d[k]]=m[d[k]]||[]).push(d);return m},{});
+/* ============================================================
+   9. GRÁFICAS
+   ============================================================ */
+Chart.defaults.color = "rgba(232,240,250,0.7)";
+Chart.defaults.font  = {family:"'DM Sans',sans-serif",size:11};
+
+function group(arr,k){ return arr.reduce(function(m,d){ (m[d[k]]=m[d[k]]||[]).push(d); return m; },{}); }
 
 function updateBarChart(data) {
-  const byVP=group(data,"vp");
-  const vps=Object.keys(byVP).sort((a,b)=>byVP[b].length-byVP[a].length);
-  const datasets=Object.keys(STATUS).map(s=>({
-    label:STATUS[s].label, data:vps.map(vp=>(byVP[vp]||[]).filter(r=>r.estatus===s).length),
-    backgroundColor:STATUS[s].color+"CC", borderColor:STATUS[s].color,
-    borderWidth:0, borderRadius:4, borderSkipped:false,
-  }));
-  if(barChart)barChart.destroy();
-  barChart=new Chart(document.getElementById("chart-bar"),{type:"bar",
-    data:{labels:vps.map(v=>v.length>18?v.substring(0,17)+"…":v),datasets},
+  var byVP = group(data,"vp");
+  var vps  = Object.keys(byVP).sort(function(a,b){ return byVP[b].length-byVP[a].length; });
+  var datasets = Object.keys(STATUS).map(function(s){
+    return {
+      label: STATUS[s].label,
+      data:  vps.map(function(vp){ return (byVP[vp]||[]).filter(function(r){ return r.estatus===s; }).length; }),
+      backgroundColor: STATUS[s].color+"CC", borderColor: STATUS[s].color,
+      borderWidth:0, borderRadius:4, borderSkipped:false
+    };
+  });
+  if (barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById("chart-bar"),{type:"bar",
+    data:{labels:vps.map(function(v){ return v.length>18?v.substring(0,17)+"…":v; }),datasets:datasets},
     options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",
       plugins:{legend:{position:"bottom",labels:{padding:14,boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:"circle"}},
-               tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}`}}},
+               tooltip:{callbacks:{label:function(c){ return " "+c.dataset.label+": "+c.raw; }}}},
       scales:{x:{stacked:true,grid:{color:"rgba(255,255,255,0.06)"},ticks:{stepSize:1}},
               y:{stacked:true,grid:{display:false}}}}});
 }
 
 function updateDonutChart(data) {
-  const statuses=Object.keys(STATUS);
-  const counts=statuses.map(s=>data.filter(d=>d.estatus===s).length);
-  if(donutChart)donutChart.destroy();
-  donutChart=new Chart(document.getElementById("chart-donut"),{type:"doughnut",
-    data:{labels:statuses.map(s=>STATUS[s].label),
-          datasets:[{data:counts,backgroundColor:statuses.map(s=>STATUS[s].color+"CC"),
-                     borderColor:statuses.map(s=>STATUS[s].color),borderWidth:1.5,hoverOffset:6}]},
+  var statuses = Object.keys(STATUS);
+  var counts   = statuses.map(function(s){ return data.filter(function(d){ return d.estatus===s; }).length; });
+  if (donutChart) donutChart.destroy();
+  donutChart = new Chart(document.getElementById("chart-donut"),{type:"doughnut",
+    data:{labels:statuses.map(function(s){ return STATUS[s].label; }),
+          datasets:[{data:counts,
+                     backgroundColor:statuses.map(function(s){ return STATUS[s].color+"CC"; }),
+                     borderColor:statuses.map(function(s){ return STATUS[s].color; }),
+                     borderWidth:1.5,hoverOffset:6}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:"66%",
       plugins:{legend:{position:"bottom",labels:{padding:14,boxWidth:10,usePointStyle:true,pointStyle:"circle"}},
-               tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${Math.round(c.raw/data.length*100)||0}%)`}}}}});
+               tooltip:{callbacks:{label:function(c){ return " "+c.label+": "+c.raw+" ("+Math.round(c.raw/data.length*100)||0+"%)"; }}}}}});
 }
 
-// ── TABLA ──────────────────────────────────────────────────────
-function badge(cls,text){return`<span class="badge ${cls}"><span class="badge-dot"></span>${text}</span>`;}
-function statusBadge(s){const cfg=STATUS[s];return cfg?badge(cfg.cls,cfg.label):`<span class="badge b-nivel">${s||"—"}</span>`;}
-function candidateSummary(row){const n=row.candidatos.filter(c=>c.nombre).length;return n?`<span class="has-candidates">👤 ${n} candidato${n>1?"s":""}</span>`:`<span class="no-candidates">—</span>`;}
+/* ============================================================
+   10. TABLA
+   ============================================================ */
+function badge(cls,text){ return '<span class="badge '+cls+'"><span class="badge-dot"></span>'+text+'</span>'; }
+function statusBadge(s){ var cfg=STATUS[s]; return cfg?badge(cfg.cls,cfg.label):'<span class="badge b-nivel">'+(s||"—")+'</span>'; }
+function candidateSummary(row){
+  var n=row.candidatos.filter(function(c){ return c.nombre; }).length;
+  return n?'<span class="has-candidates">👤 '+n+' candidato'+(n>1?"s":"")+'</span>':'<span class="no-candidates">—</span>';
+}
 
 function updateTable(data) {
-  const sorted=[...data].sort((a,b)=>{
-    const va=(a[sortCol]||"").toLowerCase(),vb=(b[sortCol]||"").toLowerCase();
+  var sorted = data.slice().sort(function(a,b){
+    var va=(a[sortCol]||"").toLowerCase(), vb=(b[sortCol]||"").toLowerCase();
     return sortAsc?va.localeCompare(vb):vb.localeCompare(va);
   });
-  document.getElementById("table-badge").textContent=`· ${data.length} resultado${data.length!==1?"s":""}`;
-  document.getElementById("table-count").textContent=`Mostrando ${data.length} de ${DATA.length} vacantes activas`;
-  document.querySelectorAll("thead th").forEach(th=>{
+  document.getElementById("table-badge").textContent = "· "+data.length+" resultado"+(data.length!==1?"s":"");
+  document.getElementById("table-count").textContent = "Mostrando "+data.length+" de "+DATA.length+" vacantes activas";
+  document.querySelectorAll("thead th").forEach(function(th){
     th.classList.toggle("sorted",th.dataset.col===sortCol);
-    const icon=th.querySelector(".sort-icon");
-    if(icon)icon.textContent=th.dataset.col===sortCol?(sortAsc?"↑":"↓"):"↕";
+    var icon=th.querySelector(".sort-icon");
+    if(icon) icon.textContent=th.dataset.col===sortCol?(sortAsc?"↑":"↓"):"↕";
   });
-  const tbody=document.getElementById("tbody");
-  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state">No hay vacantes que coincidan con los filtros.</div></td></tr>`;return;}
-  tbody.innerHTML=sorted.map(d=>`
-    <tr onclick="openDrawer('${d.req}')">
-      <td class="td-req">${d.req}</td>
-      <td class="td-cargo">${d.cargo}</td>
-      <td style="font-size:11px;color:rgba(232,240,250,0.7)">${d.vp}</td>
-      <td style="font-size:11px;color:rgba(232,240,250,0.6)">${d.dir}</td>
-      <td>${badge("b-nivel",d.nivel)}</td>
-      <td style="font-size:12px;color:rgba(232,240,250,0.65)">${d.loc}</td>
-      <td>${badge("b-tipo",d.tipo||"—")}</td>
-      <td>${badge(d.prio==="ALTA"?"b-alta":"b-media",d.prio)}</td>
-      <td>${statusBadge(d.estatus)}</td>
-      <td>${candidateSummary(d)}</td>
-    </tr>`).join("");
+  var tbody=document.getElementById("tbody");
+  if(!sorted.length){ tbody.innerHTML='<tr><td colspan="10"><div class="empty-state">No hay vacantes que coincidan con los filtros.</div></td></tr>'; return; }
+  tbody.innerHTML=sorted.map(function(d){
+    return '<tr onclick="openDrawer(\''+d.req+'\')">'
+      +'<td class="td-req">'+d.req+'</td>'
+      +'<td class="td-cargo">'+d.cargo+'</td>'
+      +'<td style="font-size:11px;color:rgba(232,240,250,0.7)">'+d.vp+'</td>'
+      +'<td style="font-size:11px;color:rgba(232,240,250,0.6)">'+d.dir+'</td>'
+      +'<td>'+badge("b-nivel",d.nivel)+'</td>'
+      +'<td style="font-size:12px;color:rgba(232,240,250,0.65)">'+d.loc+'</td>'
+      +'<td>'+badge("b-tipo",d.tipo||"—")+'</td>'
+      +'<td>'+badge(d.prio==="ALTA"?"b-alta":"b-media",d.prio)+'</td>'
+      +'<td>'+statusBadge(d.estatus)+'</td>'
+      +'<td>'+candidateSummary(d)+'</td>'
+      +'</tr>';
+  }).join("");
 }
 
-// ── DRAWER ─────────────────────────────────────────────────────
+/* ============================================================
+   11. DRAWER
+   ============================================================ */
 function openDrawer(req) {
-  const row=DATA.find(d=>d.req===req);if(!row)return;
+  var row=DATA.find(function(d){ return d.req===req; });
+  if(!row) return;
   document.getElementById("d-req").textContent=row.req;
   document.getElementById("d-cargo").textContent=row.cargo;
-  document.getElementById("d-vp").textContent=`${row.vp} · ${row.dir} · ${row.loc}`;
-  const cfg=STATUS[row.estatus];
-  document.getElementById("d-badges").innerHTML=`${badge(cfg?cfg.cls:"b-nivel",cfg?cfg.label:row.estatus)} ${badge(row.prio==="ALTA"?"b-alta":"b-media",row.prio)} ${badge("b-tipo",row.tipo||"—")}`;
-  const cands=row.candidatos.filter(c=>c.nombre);
-  const dCands=document.getElementById("d-candidates");
-  if(!cands.length){dCands.innerHTML=`<div class="no-cand-msg"><div style="font-size:24px;margin-bottom:8px">🔍</div>Sin candidatos registrados aún</div>`;}
-  else{dCands.innerHTML=cands.map(c=>`
-    <div class="candidate-card">
-      <div class="candidate-name">${c.nombre}</div>
-      <div class="candidate-status"><span style="width:7px;height:7px;border-radius:50%;background:${cfg?cfg.color:"#888"};display:inline-block;flex-shrink:0"></span>${c.statusLabel}</div>
-      ${c.fecha?`<div class="candidate-date">📅 ${c.fecha}</div>`:""}
-      ${c.nota?`<div class="candidate-note">${c.nota}</div>`:""}
-    </div>`).join("");}
-  document.getElementById("d-meta").innerHTML=`
-    <div class="drawer-section-title" style="margin-bottom:10px">Detalle de la vacante</div>
-    <div class="meta-row"><span class="meta-key">Fecha requerimiento</span><span class="meta-val">${row.fecha}</span></div>
-    <div class="meta-row"><span class="meta-key">Responsable</span><span class="meta-val">${row.responsable}</span></div>
-    <div class="meta-row"><span class="meta-key">Persona de contacto</span><span class="meta-val">${row.contacto}</span></div>
-    <div class="meta-row"><span class="meta-key">Tipo de contrato</span><span class="meta-val">${row.contrato}</span></div>
-    <div class="meta-row"><span class="meta-key">Nivel</span><span class="meta-val">${row.nivel}</span></div>
-    ${row.comentario?`<div class="meta-row" style="align-items:flex-start"><span class="meta-key">Comentarios</span><span class="meta-val" style="color:rgba(232,240,250,0.55);font-style:italic;font-weight:400">${row.comentario}</span></div>`:""}`;
+  document.getElementById("d-vp").textContent=row.vp+" · "+row.dir+" · "+row.loc;
+  var cfg=STATUS[row.estatus];
+  document.getElementById("d-badges").innerHTML=
+    badge(cfg?cfg.cls:"b-nivel",cfg?cfg.label:row.estatus)+" "
+    +badge(row.prio==="ALTA"?"b-alta":"b-media",row.prio)+" "
+    +badge("b-tipo",row.tipo||"—");
+  var cands=row.candidatos.filter(function(c){ return c.nombre; });
+  var dCands=document.getElementById("d-candidates");
+  if(!cands.length){
+    dCands.innerHTML='<div class="no-cand-msg"><div style="font-size:24px;margin-bottom:8px">🔍</div>Sin candidatos registrados aún</div>';
+  } else {
+    dCands.innerHTML=cands.map(function(c){
+      return '<div class="candidate-card">'
+        +'<div class="candidate-name">'+c.nombre+'</div>'
+        +'<div class="candidate-status"><span style="width:7px;height:7px;border-radius:50%;background:'+(cfg?cfg.color:"#888")+';display:inline-block;flex-shrink:0"></span>'+c.statusLabel+'</div>'
+        +(c.fecha?'<div class="candidate-date">📅 '+c.fecha+'</div>':"")
+        +(c.nota?'<div class="candidate-note">'+c.nota+'</div>':"")
+        +'</div>';
+    }).join("");
+  }
+  document.getElementById("d-meta").innerHTML=
+    '<div class="drawer-section-title" style="margin-bottom:10px">Detalle de la vacante</div>'
+    +'<div class="meta-row"><span class="meta-key">Fecha requerimiento</span><span class="meta-val">'+row.fecha+'</span></div>'
+    +'<div class="meta-row"><span class="meta-key">Responsable</span><span class="meta-val">'+row.responsable+'</span></div>'
+    +'<div class="meta-row"><span class="meta-key">Persona de contacto</span><span class="meta-val">'+row.contacto+'</span></div>'
+    +'<div class="meta-row"><span class="meta-key">Tipo de contrato</span><span class="meta-val">'+row.contrato+'</span></div>'
+    +'<div class="meta-row"><span class="meta-key">Nivel</span><span class="meta-val">'+row.nivel+'</span></div>'
+    +(row.comentario?'<div class="meta-row" style="align-items:flex-start"><span class="meta-key">Comentarios</span><span class="meta-val" style="color:rgba(232,240,250,0.55);font-style:italic;font-weight:400">'+row.comentario+'</span></div>':"");
   document.getElementById("overlay").classList.add("open");
   document.getElementById("drawer").classList.add("open");
 }
@@ -711,27 +702,31 @@ function closeDrawer(){
   document.getElementById("overlay").classList.remove("open");
   document.getElementById("drawer").classList.remove("open");
 }
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeDrawer(); });
 
-// ── SORT / RESET / REFRESH ─────────────────────────────────────
-function sortBy(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}refresh();}
+/* ============================================================
+   12. SORT / RESET / REFRESH
+   ============================================================ */
+function sortBy(col){ if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=true;} refresh(); }
 
 function resetFilters(){
-  FILTER_DEFS.forEach(def=>{
+  FILTER_DEFS.forEach(function(def){
     filterState[def.id].clear();
-    const portal = document.getElementById("portal-" + def.id);
-    if (portal) portal.querySelectorAll("input[type=checkbox]").forEach(cb=>cb.checked=false);
+    var portal=document.getElementById("portal-"+def.id);
+    if(portal) portal.querySelectorAll("input[type=checkbox]").forEach(function(cb){ cb.checked=false; });
     updateDropdownBtn(def);
   });
   refresh();
 }
 
 function refresh(){
-  const data=getFiltered();
-  updateKPIs(data);updateBarChart(data);updateDonutChart(data);updateTable(data);renderChips();
+  var data=getFiltered();
+  updateKPIs(data); updateBarChart(data); updateDonutChart(data); updateTable(data); renderChips();
 }
 
-// ── INICIO ─────────────────────────────────────────────────────
+/* ============================================================
+   13. INICIO
+   ============================================================ */
 loadData();
 </script>
 </body>
