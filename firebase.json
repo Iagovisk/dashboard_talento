@@ -1,18 +1,8 @@
 {
-  "hosting": {
-    "public": ".",
-    "ignore": [
-      "firebase.json",
-      ".firebaserc",
-      ".github/**",
-      "node_modules/**",
-      "*.yml"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
+    "hosting": {
+        "target": "dashboard",
+        "public": ".",
+        "ignore": ["firebase.json", ".firebaserc", ".github/**", "*.yml"],
+        "rewrites": [{ "source": "**", "destination": "/index.html" }]
+    }
 }

@@ -1,5 +1,12 @@
 {
   "projects": {
     "default": "transformacion-rrhh"
+  },
+  "targets": {
+    "transformacion-rrhh": {
+      "hosting": {
+        "dashboard": ["dashboard-talento-ftd"]
+      }
+    }
   }
 }
