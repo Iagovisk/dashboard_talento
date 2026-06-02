@@ -148,8 +148,39 @@
             <h1>Adquisición de <span>Talento</span></h1>
             <p>Dashboard de vacantes activas</p>
         </div>
+        <div style="display:flex;align-items:center;gap:10px">
         <div class="date-badge" id="date-badge">Cargando…</div>
+        <button id="btn-share" onclick="openShareModal()" style="display:none;font-family:var(--font);font-size:12px;font-weight:600;background:rgba(0,198,167,0.12);color:var(--accent);border:1px solid rgba(0,198,167,0.3);border-radius:20px;padding:6px 14px;cursor:pointer;transition:all .2s;white-space:nowrap;">
+            🔗 Compartir vista
+        </button>
+    </div>
     </header>
+
+    <!-- MODAL COMPARTIR -->
+    <div id="share-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+        <div style="background:#0e2a47;border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:28px;width:480px;max-width:94vw;position:relative;">
+            <button onclick="closeShareModal()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.07);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+            <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">🔗 Compartir vista filtrada</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Genera un link con los filtros que tienes aplicados actualmente. Quien lo reciba solo podrá ver, no modificar.</div>
+
+            <div id="share-filters-summary" style="display:none;background:rgba(0,198,167,0.07);border:1px solid rgba(0,198,167,0.2);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--text);line-height:1.7;margin-bottom:16px;"></div>
+
+            <button onclick="generateShareLink()" style="width:100%;font-family:var(--font);font-size:13px;font-weight:600;background:var(--accent);color:#071e38;border:none;border-radius:8px;padding:11px;cursor:pointer;margin-bottom:16px;transition:opacity .2s;">
+                Generar link
+            </button>
+
+            <div id="share-result" style="display:none;">
+                <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Link generado</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input id="share-link-input" readonly style="flex:1;font-family:var(--mono);font-size:11px;background:#071e38;color:var(--accent);border:1px solid rgba(0,198,167,0.3);border-radius:8px;padding:9px 12px;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    <button id="copy-btn" onclick="copyShareLink()" style="font-family:var(--font);font-size:12px;font-weight:600;background:rgba(0,198,167,0.15);color:var(--accent);border:1px solid rgba(0,198,167,0.3);border-radius:8px;padding:9px 16px;cursor:pointer;white-space:nowrap;transition:all .2s;">
+                        📋 Copiar
+                    </button>
+                </div>
+                <div id="copy-success" style="display:none;font-size:11px;color:var(--accent);margin-top:8px;">✅ Link copiado al portapapeles</div>
+            </div>
+        </div>
+    </div>
 
     <div class="error-banner" id="error-banner">
         <span>⚠️ No se pudo conectar con Google Sheets.</span>
@@ -253,23 +284,44 @@ var FILTER_DEFS = [
 ];
 
 /* ============================================================
-   2. ACCESO POR URL (token VP)
+   2. ACCESO POR URL (filtros bloqueados)
    ============================================================ */
 var SALT = "FTD2026@rrhh";
 
-function encodeVP(vpName) { return btoa(SALT + "|" + vpName); }
+function encodeFilters(state) {
+  // Serializa el filterState a JSON y lo codifica en base64 con salt
+  var obj = {};
+  FILTER_DEFS.forEach(function(def){
+    var vals = [...state[def.id]];
+    if (vals.length) obj[def.id] = vals;
+  });
+  return btoa(SALT + "|" + JSON.stringify(obj));
+}
 
-function decodeVP(token) {
+function decodeFilters(token) {
   if (!token) return null;
   try {
     var decoded = atob(token);
     if (decoded.indexOf(SALT + "|") !== 0) return "INVALID";
-    return decoded.slice(SALT.length + 1);
+    return JSON.parse(decoded.slice(SALT.length + 1));
   } catch(e) { return "INVALID"; }
 }
 
-var LOCKED_VP     = decodeVP(new URLSearchParams(window.location.search).get("v"));
-var ACCESS_BLOCKED = LOCKED_VP === "INVALID";
+// Mantener encodeVP para compatibilidad con links anteriores
+function encodeVP(vpName) { return btoa(SALT + "|" + vpName); }
+
+var _rawToken   = new URLSearchParams(window.location.search).get("f");
+var LOCKED_FILTERS = _rawToken ? decodeFilters(_rawToken) : null;
+var ACCESS_BLOCKED = LOCKED_FILTERS === "INVALID";
+// Compatibilidad con links ?v= anteriores
+var _vpToken = new URLSearchParams(window.location.search).get("v");
+if (_vpToken && !_rawToken) {
+  var _vp = (function(token){
+    try { var d=atob(token); return d.indexOf(SALT+"|")===0?d.slice(SALT.length+1):"INVALID"; } catch(e){ return "INVALID"; }
+  })(_vpToken);
+  if (_vp === "INVALID") { ACCESS_BLOCKED = true; LOCKED_FILTERS = "INVALID"; }
+  else { LOCKED_FILTERS = {"f-vp": [_vp]}; }
+}
 
 /* ============================================================
    3. ESTADO
@@ -331,6 +383,16 @@ function loadData() {
       document.getElementById("date-badge").textContent =
         now.toLocaleDateString("es-VE",{month:"long",year:"numeric"}).replace(/^\w/,function(c){return c.toUpperCase();});
 
+      // Aplicar filtros bloqueados desde la URL
+      if (LOCKED_FILTERS && LOCKED_FILTERS !== "INVALID") {
+        FILTER_DEFS.forEach(function(def){
+          filterState[def.id].clear();
+          if (LOCKED_FILTERS[def.id]) {
+            LOCKED_FILTERS[def.id].forEach(function(v){ filterState[def.id].add(v); });
+          }
+        });
+      }
+
       buildFilterDropdowns();
       refresh();
     })
@@ -365,16 +427,21 @@ function buildFilterDropdowns() {
   document.querySelectorAll(".ms-dropdown-portal").forEach(function(el){ el.remove(); });
   var resetBtn = bar.querySelector(".btn-reset");
 
-  // Mostrar badge VP bloqueada
-  if (LOCKED_VP) {
+  // Mostrar botón compartir solo en vista admin (sin filtros bloqueados)
+  if (!LOCKED_FILTERS) {
+    document.getElementById("btn-share").style.display = "block";
+  }
+
+  // Si hay filtros bloqueados, ocultar limpiar y mostrar badge
+  if (LOCKED_FILTERS && LOCKED_FILTERS !== "INVALID") {
     resetBtn.style.display = "none";
-    var existing = document.getElementById("vp-lock-badge");
+    var existing = document.getElementById("lock-badge");
     if (!existing) {
-      var vpBadge = document.createElement("div");
-      vpBadge.id = "vp-lock-badge";
-      vpBadge.style.cssText = "font-family:var(--mono);font-size:11px;color:#ffcc7a;background:rgba(255,179,71,0.12);border:1px solid rgba(255,179,71,0.25);padding:6px 12px;border-radius:20px;white-space:nowrap;";
-      vpBadge.textContent = "🔒 " + LOCKED_VP;
-      document.querySelector("header").appendChild(vpBadge);
+      var lockBadge = document.createElement("div");
+      lockBadge.id = "lock-badge";
+      lockBadge.style.cssText = "font-family:var(--mono);font-size:11px;color:#ffcc7a;background:rgba(255,179,71,0.12);border:1px solid rgba(255,179,71,0.25);padding:6px 12px;border-radius:20px;white-space:nowrap;";
+      lockBadge.textContent = "🔒 Vista compartida";
+      document.querySelector("header").appendChild(lockBadge);
     }
   }
 
@@ -433,6 +500,14 @@ function buildFilterDropdowns() {
     document.body.appendChild(portal);
 
     var btn = wrap.querySelector(".ms-btn");
+
+    // Si hay filtros bloqueados, deshabilitar el botón
+    if (LOCKED_FILTERS && LOCKED_FILTERS !== "INVALID") {
+      btn.style.pointerEvents = "none";
+      btn.style.opacity = "0.5";
+      btn.style.cursor  = "not-allowed";
+      btn.title = "Vista compartida — filtros bloqueados";
+    }
 
     // Abrir/cerrar
     btn.addEventListener("click", function(e){
@@ -725,8 +800,63 @@ function refresh(){
 }
 
 /* ============================================================
-   13. INICIO
+   14. MODAL COMPARTIR
    ============================================================ */
+function openShareModal() {
+  // Poblar el select con las VPs disponibles
+  var select = document.getElementById("share-vp-select");
+  var vps = [...new Set(DATA.map(function(d){ return d.vp; }).filter(Boolean))].sort();
+  select.innerHTML = '<option value="">— Selecciona una VP —</option>';
+  vps.forEach(function(vp){
+    var o = document.createElement("option");
+    o.value = vp; o.textContent = vp;
+    select.appendChild(o);
+  });
+  document.getElementById("share-result").style.display = "none";
+  document.getElementById("copy-success").style.display = "none";
+  var overlay = document.getElementById("share-overlay");
+  overlay.style.display = "flex";
+}
+
+function closeShareModal() {
+  document.getElementById("share-overlay").style.display = "none";
+}
+
+function generateShareLink() {
+  var vp = document.getElementById("share-vp-select").value;
+  if (!vp) {
+    document.getElementById("share-vp-select").style.borderColor = "var(--danger)";
+    setTimeout(function(){ document.getElementById("share-vp-select").style.borderColor = "rgba(255,255,255,0.15)"; }, 1500);
+    return;
+  }
+  var token = encodeVP(vp);
+  var base  = window.location.href.split("?")[0];
+  var link  = base + "?v=" + token;
+  document.getElementById("share-link-input").value = link;
+  document.getElementById("share-result").style.display = "block";
+  document.getElementById("copy-success").style.display = "none";
+}
+
+function copyShareLink() {
+  var input = document.getElementById("share-link-input");
+  navigator.clipboard.writeText(input.value).then(function(){
+    document.getElementById("copy-success").style.display = "block";
+    var btn = document.getElementById("copy-btn");
+    btn.textContent = "✅ Copiado";
+    setTimeout(function(){
+      btn.textContent = "📋 Copiar";
+      document.getElementById("copy-success").style.display = "none";
+    }, 2500);
+  }).catch(function(){
+    // Fallback para navegadores sin clipboard API
+    input.select();
+    document.execCommand("copy");
+    document.getElementById("copy-success").style.display = "block";
+  });
+}
+
+// Mostrar botón compartir solo cuando los datos están cargados
+// (se llama desde buildFilterDropdowns)
 loadData();
 </script>
 </body>
